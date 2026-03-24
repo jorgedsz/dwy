@@ -2,6 +2,13 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+const assignmentInclude = {
+  assignments: {
+    include: { user: { select: { id: true, name: true, email: true } } },
+    orderBy: { id: 'asc' },
+  },
+};
+
 async function list(req, res) {
   try {
     const { search } = req.query;
@@ -19,8 +26,7 @@ async function list(req, res) {
       where,
       include: {
         _count: { select: { sessions: true } },
-        csUser: { select: { id: true, name: true, email: true } },
-        opsUser: { select: { id: true, name: true, email: true } },
+        ...assignmentInclude,
       },
       orderBy: { updatedAt: 'desc' },
     });
@@ -37,8 +43,7 @@ async function getById(req, res) {
       where: { id: parseInt(req.params.id) },
       include: {
         sessions: { orderBy: { date: 'desc' } },
-        csUser: { select: { id: true, name: true, email: true } },
-        opsUser: { select: { id: true, name: true, email: true } },
+        ...assignmentInclude,
       },
     });
     if (!client) return res.status(404).json({ error: 'Client not found' });
@@ -49,19 +54,42 @@ async function getById(req, res) {
   }
 }
 
+async function syncAssignments(clientId, csUserIds, opsUserIds) {
+  // Delete all existing assignments for this client
+  await prisma.clientAssignment.deleteMany({ where: { clientId } });
+
+  const records = [];
+  if (csUserIds) {
+    for (const uid of csUserIds) {
+      records.push({ clientId, userId: parseInt(uid), role: 'cs' });
+    }
+  }
+  if (opsUserIds) {
+    for (const uid of opsUserIds) {
+      records.push({ clientId, userId: parseInt(uid), role: 'ops' });
+    }
+  }
+  if (records.length > 0) {
+    await prisma.clientAssignment.createMany({ data: records });
+  }
+}
+
 async function create(req, res) {
   try {
-    const { name, email, phone, company, notes, csUserId, opsUserId } = req.body;
+    const { name, email, phone, company, notes, csUserIds, opsUserIds } = req.body;
     if (!name) return res.status(400).json({ error: 'Name is required' });
 
     const client = await prisma.client.create({
-      data: {
-        name, email, phone, company, notes,
-        csUserId: csUserId ? parseInt(csUserId) : null,
-        opsUserId: opsUserId ? parseInt(opsUserId) : null,
-      },
+      data: { name, email, phone, company, notes },
     });
-    res.status(201).json(client);
+
+    await syncAssignments(client.id, csUserIds || [], opsUserIds || []);
+
+    const full = await prisma.client.findUnique({
+      where: { id: client.id },
+      include: assignmentInclude,
+    });
+    res.status(201).json(full);
   } catch (err) {
     console.error('Create client error:', err);
     res.status(500).json({ error: 'Failed to create client' });
@@ -70,16 +98,32 @@ async function create(req, res) {
 
 async function update(req, res) {
   try {
-    const { name, email, phone, company, notes, csUserId, opsUserId } = req.body;
-    const client = await prisma.client.update({
-      where: { id: parseInt(req.params.id) },
-      data: {
-        name, email, phone, company, notes,
-        csUserId: csUserId !== undefined ? (csUserId ? parseInt(csUserId) : null) : undefined,
-        opsUserId: opsUserId !== undefined ? (opsUserId ? parseInt(opsUserId) : null) : undefined,
-      },
+    const { name, email, phone, company, notes, csUserIds, opsUserIds } = req.body;
+    const id = parseInt(req.params.id);
+
+    await prisma.client.update({
+      where: { id },
+      data: { name, email, phone, company, notes },
     });
-    res.json(client);
+
+    if (csUserIds !== undefined || opsUserIds !== undefined) {
+      // Fetch current assignments if only one role is being updated
+      const current = await prisma.clientAssignment.findMany({ where: { clientId: id } });
+      const currentCs = current.filter((a) => a.role === 'cs').map((a) => a.userId);
+      const currentOps = current.filter((a) => a.role === 'ops').map((a) => a.userId);
+
+      await syncAssignments(
+        id,
+        csUserIds !== undefined ? csUserIds : currentCs,
+        opsUserIds !== undefined ? opsUserIds : currentOps
+      );
+    }
+
+    const full = await prisma.client.findUnique({
+      where: { id },
+      include: { ...assignmentInclude, sessions: { orderBy: { date: 'desc' } } },
+    });
+    res.json(full);
   } catch (err) {
     console.error('Update client error:', err);
     res.status(500).json({ error: 'Failed to update client' });

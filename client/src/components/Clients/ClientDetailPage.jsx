@@ -212,31 +212,42 @@ export default function ClientDetailPage() {
               <h2 className="text-[13px] font-bold uppercase mb-3" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>Team Assignment</h2>
               <div className="glass rounded-xl p-5 space-y-4">
                 {[
-                  { icon: Shield, label: 'CS Assigned', user: client.csUser, color: '#3b82f6' },
-                  { icon: Settings, label: 'Ops Assigned', user: client.opsUser, color: '#a855f7' },
-                ].map(({ icon: Icon, label, user, color }) => (
-                  <div key={label} className="flex items-center gap-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '12px' }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}14`, border: `1px solid ${color}30` }}>
-                      <Icon size={14} style={{ color }} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[10px] font-semibold uppercase" style={{ color: '#475569', letterSpacing: '0.05em' }}>{label}</div>
-                      {user ? (
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <div
-                            className="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-bold text-white shrink-0"
-                            style={{ background: color }}
-                          >
-                            {(user.name || user.email)[0].toUpperCase()}
-                          </div>
-                          <div className="text-[13px] font-medium text-white truncate">{user.name || user.email}</div>
+                  { icon: Shield, label: 'CS Assigned', role: 'cs', color: '#3b82f6' },
+                  { icon: Settings, label: 'Ops Assigned', role: 'ops', color: '#a855f7' },
+                ].map(({ icon: Icon, label, role, color }) => {
+                  const assigned = (client.assignments || []).filter((a) => a.role === role);
+                  return (
+                    <div key={label} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '12px' }}>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}14`, border: `1px solid ${color}30` }}>
+                          <Icon size={14} style={{ color }} />
+                        </div>
+                        <div className="text-[10px] font-semibold uppercase" style={{ color: '#475569', letterSpacing: '0.05em' }}>{label}</div>
+                      </div>
+                      {assigned.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 ml-11">
+                          {assigned.map((a) => (
+                            <div
+                              key={a.id}
+                              className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold"
+                              style={{ background: `${color}12`, border: `1px solid ${color}25`, color }}
+                            >
+                              <div
+                                className="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-bold text-white shrink-0"
+                                style={{ background: color }}
+                              >
+                                {(a.user.name || a.user.email)[0].toUpperCase()}
+                              </div>
+                              {a.user.name || a.user.email}
+                            </div>
+                          ))}
                         </div>
                       ) : (
-                        <div className="text-[13px]" style={{ color: '#334155' }}>Not assigned</div>
+                        <div className="text-[13px] ml-11" style={{ color: '#334155' }}>Not assigned</div>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

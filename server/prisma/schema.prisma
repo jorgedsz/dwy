@@ -8,30 +8,37 @@ datasource db {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
-  password      String
-  name          String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  csClients     Client[] @relation("ClientCS")
-  opsClients    Client[] @relation("ClientOps")
+  id          Int                @id @default(autoincrement())
+  email       String             @unique
+  password    String
+  name        String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  assignments ClientAssignment[]
 }
 
 model Client {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String?
-  phone     String?
-  company   String?
-  notes     String?
-  csUserId  Int?
-  csUser    User?     @relation("ClientCS", fields: [csUserId], references: [id], onDelete: SetNull)
-  opsUserId Int?
-  opsUser   User?     @relation("ClientOps", fields: [opsUserId], references: [id], onDelete: SetNull)
-  sessions  Session[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          Int                @id @default(autoincrement())
+  name        String
+  email       String?
+  phone       String?
+  company     String?
+  notes       String?
+  assignments ClientAssignment[]
+  sessions    Session[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model ClientAssignment {
+  id       Int    @id @default(autoincrement())
+  clientId Int
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  userId   Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     String // "cs" or "ops"
+
+  @@unique([clientId, userId, role])
 }
 
 model Session {
