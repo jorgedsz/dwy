@@ -1,6 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #0A0F1E;
+  color: #A0AEC0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(232,121,47,0.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(232,121,47,0.5); }
+
+/* Glass card base */
+.glass {
+  background: rgba(17,24,39,0.70);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.glass-orange {
+  background: rgba(232,121,47,0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(232,121,47,0.2);
+  box-shadow: 0 4px 24px rgba(232,121,47,0.08), inset 0 1px 0 rgba(232,121,47,0.1);
+}
+
+/* Dot background pattern */
+.dot-bg {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(232,121,47,0.07), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 0% 0%, rgba(99,102,241,0.05), transparent 55%),
+    radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px;
 }

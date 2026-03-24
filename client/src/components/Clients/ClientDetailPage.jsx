@@ -57,8 +57,8 @@ export default function ClientDetailPage() {
     }
   };
 
-  if (loading) return <div className="text-gray-500">Loading...</div>;
-  if (!client) return <div className="text-gray-500">Client not found</div>;
+  if (loading) return <div style={{ color: '#64748b' }}>Loading...</div>;
+  if (!client) return <div style={{ color: '#64748b' }}>Client not found</div>;
 
   const filteredSessions = typeFilter === 'all'
     ? client.sessions
@@ -66,52 +66,63 @@ export default function ClientDetailPage() {
 
   return (
     <div>
-      <Link to="/clients" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4">
-        <ArrowLeft size={16} />
+      <Link to="/clients" className="inline-flex items-center gap-2 text-xs mb-5 transition-colors" style={{ color: '#64748b' }}
+        onMouseEnter={(e) => e.currentTarget.style.color = '#E8792F'}
+        onMouseLeave={(e) => e.currentTarget.style.color = '#64748b'}
+      >
+        <ArrowLeft size={14} />
         Back to clients
       </Link>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="glass rounded-xl p-6 mb-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
-            <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
+            <h1 className="text-xl font-extrabold text-white">{client.name}</h1>
+            <div className="flex flex-wrap gap-4 mt-2">
               {client.email && (
-                <span className="flex items-center gap-1"><Mail size={14} />{client.email}</span>
+                <span className="flex items-center gap-1.5 text-xs" style={{ color: '#64748b' }}><Mail size={13} />{client.email}</span>
               )}
               {client.phone && (
-                <span className="flex items-center gap-1"><Phone size={14} />{client.phone}</span>
+                <span className="flex items-center gap-1.5 text-xs" style={{ color: '#64748b' }}><Phone size={13} />{client.phone}</span>
               )}
               {client.company && (
-                <span className="flex items-center gap-1"><Building size={14} />{client.company}</span>
+                <span className="flex items-center gap-1.5 text-xs" style={{ color: '#64748b' }}><Building size={13} />{client.company}</span>
               )}
             </div>
-            {client.notes && <p className="mt-3 text-sm text-gray-600">{client.notes}</p>}
+            {client.notes && <p className="mt-3 text-xs" style={{ color: '#A0AEC0', lineHeight: '1.6' }}>{client.notes}</p>}
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => setEditing(true)} className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50">
-              <Edit size={18} />
+          <div className="flex gap-1">
+            <button onClick={() => setEditing(true)} className="p-2 rounded-lg transition-colors" style={{ color: '#475569' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#E8792F'; e.currentTarget.style.background = 'rgba(232,121,47,0.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = 'transparent'; }}
+            >
+              <Edit size={16} />
             </button>
-            <button onClick={handleDelete} className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50">
-              <Trash2 size={18} />
+            <button onClick={handleDelete} className="p-2 rounded-lg transition-colors" style={{ color: '#475569' }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = 'transparent'; }}
+            >
+              <Trash2 size={16} />
             </button>
           </div>
         </div>
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-gray-900">Sessions</h2>
-          <div className="flex gap-1 ml-4">
+        <div className="flex items-center gap-3">
+          <h2 className="text-[13px] font-bold uppercase text-white" style={{ letterSpacing: '0.06em' }}>Sessions</h2>
+          <div className="flex gap-1">
             {['all', 'commercial_call', 'lesson'].map((t) => (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                className={`px-3 py-1 text-xs rounded-full font-medium ${
-                  typeFilter === t
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
+                className="px-3 py-1 text-[10px] font-bold uppercase rounded-lg transition-all"
+                style={{
+                  letterSpacing: '0.04em',
+                  ...(typeFilter === t
+                    ? { background: 'rgba(232,121,47,0.10)', color: '#E8792F', border: '1px solid rgba(232,121,47,0.25)' }
+                    : { background: 'rgba(255,255,255,0.04)', color: '#64748b', border: '1px solid transparent' })
+                }}
               >
                 {t === 'all' ? 'All' : t === 'commercial_call' ? 'Calls' : 'Lessons'}
               </button>
@@ -120,38 +131,47 @@ export default function ClientDetailPage() {
         </div>
         <button
           onClick={() => setShowSessionForm(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-[11px] font-bold uppercase transition-transform hover:-translate-y-0.5"
+          style={{ background: 'linear-gradient(135deg, #E8792F, #c45c1a)', letterSpacing: '0.05em', boxShadow: '0 0 20px rgba(232,121,47,0.35), 0 2px 8px rgba(0,0,0,0.3)' }}
         >
-          <Plus size={16} />
+          <Plus size={14} />
           Add Session
         </button>
       </div>
 
       {filteredSessions.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-200">
+        <div className="glass rounded-xl p-12 text-center text-sm" style={{ color: '#475569' }}>
           No sessions yet
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filteredSessions.map((s) => (
             <Link
               key={s.id}
               to={`/sessions/${s.id}`}
-              className="flex items-center justify-between bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
+              className="flex items-center justify-between glass rounded-xl p-4 transition-all hover:-translate-y-0.5"
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(232,121,47,0.15)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)'; }}
             >
               <div>
-                <div className="font-medium text-gray-900">{s.title}</div>
-                <div className="text-sm text-gray-400">{new Date(s.date).toLocaleDateString()}</div>
+                <div className="text-[13px] font-semibold text-white">{s.title}</div>
+                <div className="text-[11px]" style={{ color: '#475569' }}>{new Date(s.date).toLocaleDateString()}</div>
               </div>
               <div className="flex items-center gap-3">
                 {s.aiSummary && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">AI Summary</span>
+                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)', letterSpacing: '0.04em' }}>
+                    AI Summary
+                  </span>
                 )}
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  s.type === 'commercial_call'
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'bg-blue-100 text-blue-700'
-                }`}>
+                <span
+                  className="text-[10px] font-bold uppercase px-2 py-0.5 rounded"
+                  style={{
+                    letterSpacing: '0.04em',
+                    ...(s.type === 'commercial_call'
+                      ? { background: 'rgba(168,85,247,0.12)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.2)' }
+                      : { background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)' })
+                  }}
+                >
                   {s.type === 'commercial_call' ? 'Call' : 'Lesson'}
                 </span>
               </div>

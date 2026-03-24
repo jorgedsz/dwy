@@ -19,9 +19,9 @@ export default function AiSummaryPanel({ session, onUpdate }) {
 
   if (!session.transcription && !session.aiSummary) {
     return (
-      <div className="bg-gray-50 rounded-xl border border-gray-200 p-6 text-center text-gray-400">
-        <Sparkles size={24} className="mx-auto mb-2 opacity-40" />
-        <p className="text-sm">Add a transcription to generate an AI summary</p>
+      <div className="glass rounded-xl p-8 text-center">
+        <Sparkles size={24} className="mx-auto mb-3 opacity-30" style={{ color: '#E8792F' }} />
+        <p className="text-xs" style={{ color: '#475569' }}>Add a transcription to generate an AI summary</p>
       </div>
     );
   }
@@ -29,22 +29,22 @@ export default function AiSummaryPanel({ session, onUpdate }) {
   return (
     <div className="space-y-4">
       {session.aiSummary && (
-        <div className="bg-blue-50 rounded-xl border border-blue-200 p-5">
+        <div className="glass-orange rounded-xl p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={18} className="text-blue-600" />
-            <h3 className="font-semibold text-blue-900">AI Summary</h3>
+            <Sparkles size={15} style={{ color: '#E8792F' }} />
+            <h3 className="text-[13px] font-bold uppercase" style={{ color: '#E8792F', letterSpacing: '0.04em' }}>AI Summary</h3>
           </div>
-          <p className="text-sm text-blue-800 whitespace-pre-wrap">{session.aiSummary}</p>
+          <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.65' }}>{session.aiSummary}</p>
         </div>
       )}
 
       {session.pendingItems && (
-        <div className="bg-amber-50 rounded-xl border border-amber-200 p-5">
+        <div className="rounded-xl p-5" style={{ background: 'rgba(245,158,11,0.06)', backdropFilter: 'blur(12px)', border: '1px solid rgba(245,158,11,0.2)', boxShadow: '0 4px 24px rgba(245,158,11,0.08), inset 0 1px 0 rgba(245,158,11,0.1)' }}>
           <div className="flex items-center gap-2 mb-3">
-            <CheckCircle size={18} className="text-amber-600" />
-            <h3 className="font-semibold text-amber-900">Pending Items</h3>
+            <CheckCircle size={15} style={{ color: '#f59e0b' }} />
+            <h3 className="text-[13px] font-bold uppercase" style={{ color: '#f59e0b', letterSpacing: '0.04em' }}>Pending Items</h3>
           </div>
-          <p className="text-sm text-amber-800 whitespace-pre-wrap">{session.pendingItems}</p>
+          <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.65' }}>{session.pendingItems}</p>
         </div>
       )}
 
@@ -52,9 +52,10 @@ export default function AiSummaryPanel({ session, onUpdate }) {
         <button
           onClick={handleReanalyze}
           disabled={analyzing}
-          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+          className="flex items-center gap-2 text-[11px] font-bold uppercase transition-colors disabled:opacity-50"
+          style={{ color: '#E8792F', letterSpacing: '0.04em' }}
         >
-          <RefreshCw size={16} className={analyzing ? 'animate-spin' : ''} />
+          <RefreshCw size={14} className={analyzing ? 'animate-spin' : ''} />
           {analyzing ? 'Analyzing...' : 'Re-analyze with AI'}
         </button>
       )}

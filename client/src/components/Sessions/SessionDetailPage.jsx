@@ -50,41 +50,54 @@ export default function SessionDetailPage() {
     setSession((prev) => ({ ...prev, ...data }));
   };
 
-  if (loading) return <div className="text-gray-500">Loading...</div>;
-  if (!session) return <div className="text-gray-500">Session not found</div>;
+  if (loading) return <div style={{ color: '#64748b' }}>Loading...</div>;
+  if (!session) return <div style={{ color: '#64748b' }}>Session not found</div>;
 
   return (
     <div>
       <Link
         to={`/clients/${session.clientId}`}
-        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+        className="inline-flex items-center gap-2 text-xs mb-5 transition-colors"
+        style={{ color: '#64748b' }}
+        onMouseEnter={(e) => e.currentTarget.style.color = '#E8792F'}
+        onMouseLeave={(e) => e.currentTarget.style.color = '#64748b'}
       >
-        <ArrowLeft size={16} />
+        <ArrowLeft size={14} />
         Back to {session.client?.name || 'client'}
       </Link>
 
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-7">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{session.title}</h1>
-          <div className="flex items-center gap-3 mt-1">
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-              session.type === 'commercial_call'
-                ? 'bg-purple-100 text-purple-700'
-                : 'bg-blue-100 text-blue-700'
-            }`}>
+          <h1 className="text-xl font-extrabold text-white">{session.title}</h1>
+          <div className="flex items-center gap-3 mt-2">
+            <span
+              className="text-[10px] font-bold uppercase px-2 py-0.5 rounded"
+              style={{
+                letterSpacing: '0.04em',
+                ...(session.type === 'commercial_call'
+                  ? { background: 'rgba(168,85,247,0.12)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.2)' }
+                  : { background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)' })
+              }}
+            >
               {session.type === 'commercial_call' ? 'Commercial Call' : 'Lesson'}
             </span>
-            <span className="text-sm text-gray-400">
+            <span className="text-[11px]" style={{ color: '#475569' }}>
               {new Date(session.date).toLocaleDateString()}
             </span>
           </div>
         </div>
-        <div className="flex gap-2">
-          <button onClick={() => setEditing(true)} className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50">
-            <Edit size={18} />
+        <div className="flex gap-1">
+          <button onClick={() => setEditing(true)} className="p-2 rounded-lg transition-colors" style={{ color: '#475569' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#E8792F'; e.currentTarget.style.background = 'rgba(232,121,47,0.1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = 'transparent'; }}
+          >
+            <Edit size={16} />
           </button>
-          <button onClick={handleDelete} className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50">
-            <Trash2 size={18} />
+          <button onClick={handleDelete} className="p-2 rounded-lg transition-colors" style={{ color: '#475569' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = 'transparent'; }}
+          >
+            <Trash2 size={16} />
           </button>
         </div>
       </div>
@@ -93,19 +106,19 @@ export default function SessionDetailPage() {
         <div className="space-y-6">
           {session.recordingUrl && (
             <div>
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Recording</h2>
+              <h2 className="text-[13px] font-bold uppercase mb-3" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>Recording</h2>
               <VideoEmbed url={session.recordingUrl} />
             </div>
           )}
 
           <div>
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Transcription</h2>
+            <h2 className="text-[13px] font-bold uppercase mb-3" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>Transcription</h2>
             {session.transcription ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-5 max-h-96 overflow-y-auto">
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{session.transcription}</p>
+              <div className="glass rounded-xl p-5 max-h-96 overflow-y-auto">
+                <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.65' }}>{session.transcription}</p>
               </div>
             ) : (
-              <div className="bg-gray-50 rounded-xl border border-gray-200 p-5 text-center text-gray-400 text-sm">
+              <div className="glass rounded-xl p-8 text-center text-xs" style={{ color: '#475569' }}>
                 No transcription added yet
               </div>
             )}
@@ -113,7 +126,7 @@ export default function SessionDetailPage() {
         </div>
 
         <div>
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">AI Analysis</h2>
+          <h2 className="text-[13px] font-bold uppercase mb-3" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>AI Analysis</h2>
           <AiSummaryPanel session={session} onUpdate={handleAiUpdate} />
         </div>
       </div>

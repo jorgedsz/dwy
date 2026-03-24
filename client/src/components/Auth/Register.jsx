@@ -21,50 +21,77 @@ export default function Register() {
     }
   };
 
+  const inputStyle = { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-center mb-6">Done With You</h1>
-        <h2 className="text-lg text-gray-600 text-center mb-6">Create your account</h2>
-        {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{error}</div>}
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0a0f1e, #0f172a, #0a0f1e)' }}>
+      <div className="fixed top-0 right-0 w-80 h-80 rounded-full opacity-50 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(232,121,47,0.12), transparent 70%)', filter: 'blur(40px)' }} />
+      <div className="fixed bottom-0 left-0 w-64 h-64 rounded-full opacity-50 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.08), transparent 70%)', filter: 'blur(40px)' }} />
+
+      <div className="glass w-full max-w-md rounded-2xl p-8 relative" style={{ boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+        <h1 className="text-2xl font-extrabold text-center mb-2" style={{ background: 'linear-gradient(135deg, #fff 30%, #E8792F 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Done With You
+        </h1>
+        <p className="text-center text-sm mb-6" style={{ color: '#64748b' }}>Create your account</p>
+
+        {error && (
+          <div className="mb-4 p-3 rounded-lg text-sm" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.22)', color: '#f87171' }}>
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label className="block text-xs font-semibold uppercase mb-1.5" style={{ color: '#94a3b8', letterSpacing: '0.05em' }}>Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors"
+              style={inputStyle}
+              onFocus={(e) => e.target.style.borderColor = 'rgba(232,121,47,0.5)'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-xs font-semibold uppercase mb-1.5" style={{ color: '#94a3b8', letterSpacing: '0.05em' }}>Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors"
+              style={inputStyle}
+              onFocus={(e) => e.target.style.borderColor = 'rgba(232,121,47,0.5)'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-xs font-semibold uppercase mb-1.5" style={{ color: '#94a3b8', letterSpacing: '0.05em' }}>Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none transition-colors"
+              style={inputStyle}
+              onFocus={(e) => e.target.style.borderColor = 'rgba(232,121,47,0.5)'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
             />
           </div>
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium">
+          <button
+            type="submit"
+            className="w-full py-3 rounded-lg text-white text-xs font-bold uppercase transition-transform hover:-translate-y-0.5"
+            style={{ background: 'linear-gradient(135deg, #E8792F, #c45c1a)', letterSpacing: '0.05em', boxShadow: '0 4px 16px rgba(232,121,47,0.3)' }}
+          >
             Create Account
           </button>
         </form>
-        <p className="text-center text-sm text-gray-500 mt-4">
+
+        <p className="text-center text-sm mt-5" style={{ color: '#64748b' }}>
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline">Sign in</Link>
+          <Link to="/login" className="font-semibold hover:underline" style={{ color: '#E8792F' }}>Sign in</Link>
         </p>
       </div>
     </div>
