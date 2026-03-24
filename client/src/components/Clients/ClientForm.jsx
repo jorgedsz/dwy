@@ -1,25 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import api from '../../services/api';
 
 const inputStyle = { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' };
 
 export default function ClientForm({ client, onSave, onCancel }) {
+  const [users, setUsers] = useState([]);
   const [form, setForm] = useState({
     name: client?.name || '',
     email: client?.email || '',
     phone: client?.phone || '',
     company: client?.company || '',
     notes: client?.notes || '',
+    csUserId: client?.csUserId || '',
+    opsUserId: client?.opsUserId || '',
   });
+
+  useEffect(() => {
+    api.get('/auth/users').then((res) => setUsers(res.data)).catch(() => {});
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(form);
+    onSave({
+      ...form,
+      csUserId: form.csUserId || null,
+      opsUserId: form.opsUserId || null,
+    });
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)' }}>
-      <div className="glass w-full max-w-lg rounded-2xl p-6" style={{ boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+      <div className="glass w-full max-w-lg rounded-2xl p-6 max-h-[90vh] overflow-y-auto" style={{ boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-[13px] font-bold uppercase text-white" style={{ letterSpacing: '0.06em' }}>
             {client ? 'Edit Client' : 'New Client'}
@@ -49,6 +61,38 @@ export default function ClientForm({ client, onSave, onCancel }) {
               />
             </div>
           ))}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase mb-1.5" style={{ color: '#94a3b8', letterSpacing: '0.05em' }}>CS Assigned</label>
+              <select
+                value={form.csUserId}
+                onChange={(e) => setForm({ ...form, csUserId: e.target.value })}
+                className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                style={inputStyle}
+              >
+                <option value="">-- None --</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name || u.email}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase mb-1.5" style={{ color: '#94a3b8', letterSpacing: '0.05em' }}>Ops Assigned</label>
+              <select
+                value={form.opsUserId}
+                onChange={(e) => setForm({ ...form, opsUserId: e.target.value })}
+                className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                style={inputStyle}
+              >
+                <option value="">-- None --</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name || u.email}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold uppercase mb-1.5" style={{ color: '#94a3b8', letterSpacing: '0.05em' }}>Notes</label>
             <textarea

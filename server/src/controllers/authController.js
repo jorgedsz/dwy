@@ -69,4 +69,17 @@ async function me(req, res) {
   }
 }
 
-module.exports = { register, login, me };
+async function listUsers(req, res) {
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true, email: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+    res.json(users);
+  } catch (err) {
+    console.error('List users error:', err);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+}
+
+module.exports = { register, login, me, listUsers };

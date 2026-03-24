@@ -1,0 +1,9 @@
+-- AlterTable
+ALTER TABLE "Client" ADD COLUMN "csUserId" INTEGER;
+ALTER TABLE "Client" ADD COLUMN "opsUserId" INTEGER;
+
+-- AddForeignKey
+ALTER TABLE "Client" ADD CONSTRAINT "Client_csUserId_fkey" FOREIGN KEY ("csUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Client" ADD CONSTRAINT "Client_opsUserId_fkey" FOREIGN KEY ("opsUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

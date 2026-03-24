@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, Plus, Phone, Mail, Building, User, Calendar, Video, FileText, Clock } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus, Phone, Mail, Building, User, Calendar, Video, FileText, Clock, Shield, Settings } from 'lucide-react';
 import api from '../../services/api';
 import ClientForm from './ClientForm';
 import SessionForm from '../Sessions/SessionForm';
@@ -205,15 +205,51 @@ export default function ClientDetailPage() {
             </div>
           </div>
 
-          {/* Notes */}
-          <div>
-            <h2 className="text-[13px] font-bold uppercase mb-3" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>Notes</h2>
-            <div className="glass rounded-xl p-5 h-[calc(100%-32px)]">
-              {client.notes ? (
-                <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.65' }}>{client.notes}</p>
-              ) : (
-                <p className="text-xs" style={{ color: '#334155' }}>No notes added yet. Click edit to add notes about this client.</p>
-              )}
+          {/* Team & Notes */}
+          <div className="space-y-4">
+            {/* Team Assignment */}
+            <div>
+              <h2 className="text-[13px] font-bold uppercase mb-3" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>Team Assignment</h2>
+              <div className="glass rounded-xl p-5 space-y-4">
+                {[
+                  { icon: Shield, label: 'CS Assigned', user: client.csUser, color: '#3b82f6' },
+                  { icon: Settings, label: 'Ops Assigned', user: client.opsUser, color: '#a855f7' },
+                ].map(({ icon: Icon, label, user, color }) => (
+                  <div key={label} className="flex items-center gap-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '12px' }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${color}14`, border: `1px solid ${color}30` }}>
+                      <Icon size={14} style={{ color }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-semibold uppercase" style={{ color: '#475569', letterSpacing: '0.05em' }}>{label}</div>
+                      {user ? (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <div
+                            className="w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-bold text-white shrink-0"
+                            style={{ background: color }}
+                          >
+                            {(user.name || user.email)[0].toUpperCase()}
+                          </div>
+                          <div className="text-[13px] font-medium text-white truncate">{user.name || user.email}</div>
+                        </div>
+                      ) : (
+                        <div className="text-[13px]" style={{ color: '#334155' }}>Not assigned</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <h2 className="text-[13px] font-bold uppercase mb-3" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>Notes</h2>
+              <div className="glass rounded-xl p-5">
+                {client.notes ? (
+                  <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.65' }}>{client.notes}</p>
+                ) : (
+                  <p className="text-xs" style={{ color: '#334155' }}>No notes added yet. Click edit to add notes about this client.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

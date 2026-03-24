@@ -17,7 +17,11 @@ async function list(req, res) {
 
     const clients = await prisma.client.findMany({
       where,
-      include: { _count: { select: { sessions: true } } },
+      include: {
+        _count: { select: { sessions: true } },
+        csUser: { select: { id: true, name: true, email: true } },
+        opsUser: { select: { id: true, name: true, email: true } },
+      },
       orderBy: { updatedAt: 'desc' },
     });
     res.json(clients);
@@ -33,6 +37,8 @@ async function getById(req, res) {
       where: { id: parseInt(req.params.id) },
       include: {
         sessions: { orderBy: { date: 'desc' } },
+        csUser: { select: { id: true, name: true, email: true } },
+        opsUser: { select: { id: true, name: true, email: true } },
       },
     });
     if (!client) return res.status(404).json({ error: 'Client not found' });
@@ -45,11 +51,15 @@ async function getById(req, res) {
 
 async function create(req, res) {
   try {
-    const { name, email, phone, company, notes } = req.body;
+    const { name, email, phone, company, notes, csUserId, opsUserId } = req.body;
     if (!name) return res.status(400).json({ error: 'Name is required' });
 
     const client = await prisma.client.create({
-      data: { name, email, phone, company, notes },
+      data: {
+        name, email, phone, company, notes,
+        csUserId: csUserId ? parseInt(csUserId) : null,
+        opsUserId: opsUserId ? parseInt(opsUserId) : null,
+      },
     });
     res.status(201).json(client);
   } catch (err) {
@@ -60,10 +70,14 @@ async function create(req, res) {
 
 async function update(req, res) {
   try {
-    const { name, email, phone, company, notes } = req.body;
+    const { name, email, phone, company, notes, csUserId, opsUserId } = req.body;
     const client = await prisma.client.update({
       where: { id: parseInt(req.params.id) },
-      data: { name, email, phone, company, notes },
+      data: {
+        name, email, phone, company, notes,
+        csUserId: csUserId !== undefined ? (csUserId ? parseInt(csUserId) : null) : undefined,
+        opsUserId: opsUserId !== undefined ? (opsUserId ? parseInt(opsUserId) : null) : undefined,
+      },
     });
     res.json(client);
   } catch (err) {
