@@ -1,11 +1,12 @@
 const { Router } = require('express');
-const { listByClient, getById, create, update, remove, analyze } = require('../controllers/sessionController');
+const { listByClient, getById, create, update, remove, analyze, testAi } = require('../controllers/sessionController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 const router = Router();
 
 router.use(authMiddleware);
 
+router.get('/test-ai', testAi);
 router.get('/client/:clientId', listByClient);
 router.get('/:id', getById);
 router.post('/', create);

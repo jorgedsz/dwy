@@ -6,63 +6,33 @@ export default function AiSummaryPanel({ session, onUpdate }) {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState(null);
   const triggeredRef = useRef(false);
-  const pollRef = useRef(null);
-  const attemptsRef = useRef(0);
 
   // Auto-trigger analysis when transcription exists but no AI summary yet
   useEffect(() => {
     if (session.transcription && !session.aiSummary && !triggeredRef.current) {
       triggeredRef.current = true;
-      triggerAndPoll();
+      runAnalysis();
     }
-    return () => stopPolling();
   }, [session.id, session.transcription, session.aiSummary]);
 
-  const stopPolling = () => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-  };
-
-  const triggerAndPoll = async () => {
+  const runAnalysis = async () => {
     setAnalyzing(true);
     setError(null);
-    attemptsRef.current = 0;
-
     try {
-      // Trigger analysis (returns immediately)
-      await api.post(`/sessions/${session.id}/analyze`);
+      const res = await api.post(`/sessions/${session.id}/analyze`, {}, { timeout: 60000 });
+      onUpdate({ aiSummary: res.data.summary, pendingItems: res.data.pendingItems });
     } catch (err) {
-      const msg = err.response?.data?.error || err.message || 'Failed to start analysis';
+      console.error('Analyze error:', err);
+      const msg = err.response?.data?.error || err.message || 'Analysis failed';
       setError(msg);
+    } finally {
       setAnalyzing(false);
-      return;
     }
-
-    // Poll every 3s for up to 60s
-    pollRef.current = setInterval(async () => {
-      attemptsRef.current += 1;
-      if (attemptsRef.current > 20) {
-        stopPolling();
-        setError('Analysis timed out. Click retry to try again.');
-        setAnalyzing(false);
-        return;
-      }
-      try {
-        const res = await api.get(`/sessions/${session.id}`);
-        if (res.data.aiSummary) {
-          stopPolling();
-          setAnalyzing(false);
-          onUpdate({ aiSummary: res.data.aiSummary, pendingItems: res.data.pendingItems });
-        }
-      } catch (_) { /* ignore poll errors */ }
-    }, 3000);
   };
 
   const handleRetry = () => {
     triggeredRef.current = false;
-    triggerAndPoll();
+    runAnalysis();
   };
 
   if (!session.transcription && !session.aiSummary) {
