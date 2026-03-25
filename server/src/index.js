@@ -30,9 +30,17 @@ function createWhatsAppClient(sessionId, userId) {
   const entry = { client: null, status: 'initializing', qr: null, userId: userId || null };
   waSessions.set(sessionId, entry);
 
+  const puppeteerOpts = {
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
+  };
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    puppeteerOpts.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+
   const client = new WAClient({
     authStrategy: new LocalAuth({ clientId: sessionId }),
-    puppeteer: { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
+    puppeteer: puppeteerOpts,
   });
 
   entry.client = client;
