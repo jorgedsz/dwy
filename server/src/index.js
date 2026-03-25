@@ -111,6 +111,32 @@ app.use((req, res, next) => {
   next();
 });
 
+// Diagnostic: test OpenAI connection (no auth required)
+app.get('/api/test-ai', async (req, res) => {
+  try {
+    const key = process.env.OPENAI_API_KEY;
+    if (!key) return res.json({ ok: false, error: 'OPENAI_API_KEY not set' });
+    res.json({ ok: true, keyPrefix: key.substring(0, 8) + '...', keyLength: key.length });
+  } catch (err) {
+    res.json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/test-ai-call', async (req, res) => {
+  try {
+    const OpenAI = require('openai');
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: 'Reply with just: ok' }],
+      max_tokens: 5,
+    });
+    res.json({ ok: true, reply: response.choices[0].message.content });
+  } catch (err) {
+    res.json({ ok: false, error: err.message, type: err.constructor.name });
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/sessions', sessionRoutes);
