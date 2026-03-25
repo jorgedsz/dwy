@@ -117,9 +117,13 @@ export default function ClientDetailPage() {
 
   const handleCreateSession = async (data) => {
     try {
-      await api.post('/sessions', { ...data, clientId: parseInt(id) });
+      const res = await api.post('/sessions', { ...data, clientId: parseInt(id) });
       setShowSessionForm(false);
-      load();
+      if (data.transcription) {
+        navigate(`/sessions/${res.data.id}`);
+      } else {
+        load();
+      }
     } catch (err) {
       console.error('Create session error:', err);
     }

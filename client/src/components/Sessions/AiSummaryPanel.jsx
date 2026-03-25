@@ -1,9 +1,33 @@
-import { useState } from 'react';
-import { Sparkles, RefreshCw, CheckCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Sparkles, RefreshCw, CheckCircle, Loader } from 'lucide-react';
 import api from '../../services/api';
 
 export default function AiSummaryPanel({ session, onUpdate }) {
   const [analyzing, setAnalyzing] = useState(false);
+  const pollRef = useRef(null);
+
+  // Auto-poll when transcription exists but no AI summary yet
+  useEffect(() => {
+    if (session.transcription && !session.aiSummary) {
+      const poll = async () => {
+        try {
+          const res = await api.get(`/sessions/${session.id}`);
+          if (res.data.aiSummary) {
+            onUpdate({ aiSummary: res.data.aiSummary, pendingItems: res.data.pendingItems });
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
+        } catch (err) {
+          // ignore polling errors
+        }
+      };
+
+      pollRef.current = setInterval(poll, 3000);
+      return () => {
+        if (pollRef.current) clearInterval(pollRef.current);
+      };
+    }
+  }, [session.id, session.transcription, session.aiSummary]);
 
   const handleReanalyze = async () => {
     setAnalyzing(true);
@@ -22,6 +46,17 @@ export default function AiSummaryPanel({ session, onUpdate }) {
       <div className="glass rounded-xl p-8 text-center">
         <Sparkles size={24} className="mx-auto mb-3 opacity-30" style={{ color: '#E8792F' }} />
         <p className="text-xs" style={{ color: '#475569' }}>Add a transcription to generate an AI summary</p>
+      </div>
+    );
+  }
+
+  // Transcription exists but AI hasn't finished yet — show generating state
+  if (session.transcription && !session.aiSummary) {
+    return (
+      <div className="glass rounded-xl p-8 text-center">
+        <Loader size={24} className="mx-auto mb-3 animate-spin" style={{ color: '#E8792F' }} />
+        <p className="text-xs font-semibold" style={{ color: '#E8792F' }}>Generating AI analysis...</p>
+        <p className="text-[11px] mt-1" style={{ color: '#475569' }}>This may take a few seconds</p>
       </div>
     );
   }
