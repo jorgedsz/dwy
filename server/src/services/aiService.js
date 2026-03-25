@@ -49,6 +49,12 @@ Respond in the SAME LANGUAGE as the transcription. Return JSON with:
 - "summary": A concise summary of key points discussed, decisions made, and outcomes.
 - "pendingItems": A bullet-point list of action items, follow-ups, or pending tasks identified.`;
 
+  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your-openai-api-key-here') {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+
+  console.log(`[AI] Analyzing session ${sessionId} for client "${session.client.name}"...`);
+
   const openai = getClient();
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',
@@ -58,6 +64,7 @@ Respond in the SAME LANGUAGE as the transcription. Return JSON with:
   });
 
   const result = JSON.parse(response.choices[0].message.content);
+  console.log(`[AI] Session ${sessionId} analysis complete.`);
 
   await prisma.session.update({
     where: { id: sessionId },

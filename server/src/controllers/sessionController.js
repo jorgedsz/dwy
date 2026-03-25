@@ -111,8 +111,8 @@ async function analyze(req, res) {
     }
     res.json(result);
   } catch (err) {
-    console.error('Analyze session error:', err);
-    res.status(500).json({ error: 'AI analysis failed' });
+    console.error('Analyze session error:', err.message || err);
+    res.status(500).json({ error: err.message || 'AI analysis failed' });
   }
 }
 

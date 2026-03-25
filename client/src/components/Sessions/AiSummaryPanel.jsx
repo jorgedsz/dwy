@@ -1,44 +1,38 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, RefreshCw, CheckCircle, Loader } from 'lucide-react';
+import { Sparkles, RefreshCw, CheckCircle, Loader, AlertCircle } from 'lucide-react';
 import api from '../../services/api';
 
 export default function AiSummaryPanel({ session, onUpdate }) {
   const [analyzing, setAnalyzing] = useState(false);
-  const pollRef = useRef(null);
+  const [error, setError] = useState(null);
+  const triggeredRef = useRef(false);
 
-  // Auto-poll when transcription exists but no AI summary yet
+  // Auto-trigger analysis when transcription exists but no AI summary yet
   useEffect(() => {
-    if (session.transcription && !session.aiSummary) {
-      const poll = async () => {
-        try {
-          const res = await api.get(`/sessions/${session.id}`);
-          if (res.data.aiSummary) {
-            onUpdate({ aiSummary: res.data.aiSummary, pendingItems: res.data.pendingItems });
-            clearInterval(pollRef.current);
-            pollRef.current = null;
-          }
-        } catch (err) {
-          // ignore polling errors
-        }
-      };
-
-      pollRef.current = setInterval(poll, 3000);
-      return () => {
-        if (pollRef.current) clearInterval(pollRef.current);
-      };
+    if (session.transcription && !session.aiSummary && !triggeredRef.current) {
+      triggeredRef.current = true;
+      runAnalysis();
     }
   }, [session.id, session.transcription, session.aiSummary]);
 
-  const handleReanalyze = async () => {
+  const runAnalysis = async () => {
     setAnalyzing(true);
+    setError(null);
     try {
       const res = await api.post(`/sessions/${session.id}/analyze`);
       onUpdate({ aiSummary: res.data.summary, pendingItems: res.data.pendingItems });
     } catch (err) {
       console.error('Analyze error:', err);
+      const msg = err.response?.data?.error || err.message || 'Analysis failed';
+      setError(msg);
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  const handleRetry = () => {
+    triggeredRef.current = false;
+    runAnalysis();
   };
 
   if (!session.transcription && !session.aiSummary) {
@@ -50,13 +44,32 @@ export default function AiSummaryPanel({ session, onUpdate }) {
     );
   }
 
-  // Transcription exists but AI hasn't finished yet — show generating state
-  if (session.transcription && !session.aiSummary) {
+  // Currently analyzing
+  if (analyzing) {
     return (
       <div className="glass rounded-xl p-8 text-center">
         <Loader size={24} className="mx-auto mb-3 animate-spin" style={{ color: '#E8792F' }} />
         <p className="text-xs font-semibold" style={{ color: '#E8792F' }}>Generating AI analysis...</p>
         <p className="text-[11px] mt-1" style={{ color: '#475569' }}>This may take a few seconds</p>
+      </div>
+    );
+  }
+
+  // Analysis failed
+  if (error && !session.aiSummary) {
+    return (
+      <div className="glass rounded-xl p-6 text-center">
+        <AlertCircle size={24} className="mx-auto mb-3" style={{ color: '#f87171' }} />
+        <p className="text-xs font-semibold mb-1" style={{ color: '#f87171' }}>AI analysis failed</p>
+        <p className="text-[11px] mb-4" style={{ color: '#475569' }}>{error}</p>
+        <button
+          onClick={handleRetry}
+          className="inline-flex items-center gap-2 text-[11px] font-bold uppercase"
+          style={{ color: '#E8792F', letterSpacing: '0.04em' }}
+        >
+          <RefreshCw size={14} />
+          Retry
+        </button>
       </div>
     );
   }
@@ -85,7 +98,7 @@ export default function AiSummaryPanel({ session, onUpdate }) {
 
       {session.transcription && (
         <button
-          onClick={handleReanalyze}
+          onClick={handleRetry}
           disabled={analyzing}
           className="flex items-center gap-2 text-[11px] font-bold uppercase transition-colors disabled:opacity-50"
           style={{ color: '#E8792F', letterSpacing: '0.04em' }}
