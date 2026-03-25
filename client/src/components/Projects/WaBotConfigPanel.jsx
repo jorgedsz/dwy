@@ -13,7 +13,16 @@ export default function WaBotConfigPanel() {
   useEffect(() => { loadConfig(); }, []);
 
   const loadConfig = async () => {
-    try { const { data } = await waBotConfigAPI.get(); setConfig(data.config); } catch (err) { console.error(err); } finally { setLoading(false); }
+    try {
+      const { data } = await waBotConfigAPI.get();
+      setConfig(data.config);
+    } catch (err) {
+      console.error(err);
+      // Fallback to defaults if API fails (e.g. table not yet created)
+      setConfig({ teamKeywords: [], blockedGroups: [], enabled: true });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const save = async () => {

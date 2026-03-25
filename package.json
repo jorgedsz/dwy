@@ -7,7 +7,7 @@
   },
   "scripts": {
     "build": "npm install --prefix client && npm run build --prefix client && npm install --prefix server && npx --prefix server prisma generate --schema=server/prisma/schema.prisma",
-    "start": "npx --prefix server prisma migrate deploy --schema=server/prisma/schema.prisma && node server/src/index.js",
+    "start": "npx --prefix server prisma db push --schema=server/prisma/schema.prisma --accept-data-loss && node server/src/index.js",
     "dev:server": "npm run dev --prefix server",
     "dev:client": "npm run dev --prefix client"
   }
