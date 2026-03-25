@@ -131,6 +131,18 @@ app.get('/api/whatsapp/sessions/:sessionId/qr', authMiddleware, (req, res) => {
   res.json({ qr: entry.qr, status: entry.status });
 });
 
+// Restart a session (destroy + recreate for fresh QR)
+app.post('/api/whatsapp/sessions/:sessionId/restart', authMiddleware, async (req, res) => {
+  const { sessionId } = req.params;
+  const entry = waSessions.get(sessionId);
+  if (entry) {
+    try { await entry.client.destroy(); } catch (_) { /* ignore */ }
+    waSessions.delete(sessionId);
+  }
+  const newEntry = createWhatsAppClient(sessionId, req.user.id);
+  res.json({ sessionId, status: newEntry.status });
+});
+
 app.delete('/api/whatsapp/sessions/:sessionId', authMiddleware, async (req, res) => {
   const entry = waSessions.get(req.params.sessionId);
   if (!entry) return res.status(404).json({ error: 'Session not found' });

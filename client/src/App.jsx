@@ -10,6 +10,7 @@ import SessionDetailPage from './components/Sessions/SessionDetailPage';
 import WaProjectsDashboard from './components/Projects/WaProjectsDashboard';
 import WaProjectDetail from './components/Projects/WaProjectDetail';
 import WaAlertsDashboard from './components/Projects/WaAlertsDashboard';
+import WhatsAppPage from './components/WhatsApp/WhatsAppPage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -38,6 +39,7 @@ function App() {
         <Route path="projects" element={<WaProjectsDashboard />} />
         <Route path="projects/:id" element={<WaProjectDetail />} />
         <Route path="alerts" element={<WaAlertsDashboard />} />
+        <Route path="whatsapp" element={<WhatsAppPage />} />
       </Route>
     </Routes>
   );
