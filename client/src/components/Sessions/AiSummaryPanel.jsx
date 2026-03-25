@@ -6,33 +6,63 @@ export default function AiSummaryPanel({ session, onUpdate }) {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState(null);
   const triggeredRef = useRef(false);
+  const pollRef = useRef(null);
+  const attemptsRef = useRef(0);
 
   // Auto-trigger analysis when transcription exists but no AI summary yet
   useEffect(() => {
     if (session.transcription && !session.aiSummary && !triggeredRef.current) {
       triggeredRef.current = true;
-      runAnalysis();
+      triggerAndPoll();
     }
+    return () => stopPolling();
   }, [session.id, session.transcription, session.aiSummary]);
 
-  const runAnalysis = async () => {
+  const stopPolling = () => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+
+  const triggerAndPoll = async () => {
     setAnalyzing(true);
     setError(null);
+    attemptsRef.current = 0;
+
     try {
-      const res = await api.post(`/sessions/${session.id}/analyze`);
-      onUpdate({ aiSummary: res.data.summary, pendingItems: res.data.pendingItems });
+      // Trigger analysis (returns immediately)
+      await api.post(`/sessions/${session.id}/analyze`);
     } catch (err) {
-      console.error('Analyze error:', err);
-      const msg = err.response?.data?.error || err.message || 'Analysis failed';
+      const msg = err.response?.data?.error || err.message || 'Failed to start analysis';
       setError(msg);
-    } finally {
       setAnalyzing(false);
+      return;
     }
+
+    // Poll every 3s for up to 60s
+    pollRef.current = setInterval(async () => {
+      attemptsRef.current += 1;
+      if (attemptsRef.current > 20) {
+        stopPolling();
+        setError('Analysis timed out. Click retry to try again.');
+        setAnalyzing(false);
+        return;
+      }
+      try {
+        const res = await api.get(`/sessions/${session.id}`);
+        if (res.data.aiSummary) {
+          stopPolling();
+          setAnalyzing(false);
+          onUpdate({ aiSummary: res.data.aiSummary, pendingItems: res.data.pendingItems });
+        }
+      } catch (_) { /* ignore poll errors */ }
+    }, 3000);
   };
 
   const handleRetry = () => {
     triggeredRef.current = false;
-    runAnalysis();
+    triggerAndPoll();
   };
 
   if (!session.transcription && !session.aiSummary) {
@@ -50,7 +80,7 @@ export default function AiSummaryPanel({ session, onUpdate }) {
       <div className="glass rounded-xl p-8 text-center">
         <Loader size={24} className="mx-auto mb-3 animate-spin" style={{ color: '#E8792F' }} />
         <p className="text-xs font-semibold" style={{ color: '#E8792F' }}>Generating AI analysis...</p>
-        <p className="text-[11px] mt-1" style={{ color: '#475569' }}>This may take a few seconds</p>
+        <p className="text-[11px] mt-1" style={{ color: '#475569' }}>This may take up to 30 seconds</p>
       </div>
     );
   }

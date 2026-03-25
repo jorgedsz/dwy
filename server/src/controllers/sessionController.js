@@ -105,11 +105,17 @@ async function remove(req, res) {
 
 async function analyze(req, res) {
   try {
-    const result = await analyzeSession(parseInt(req.params.id));
-    if (!result) {
-      return res.status(400).json({ error: 'No transcription to analyze' });
-    }
-    res.json(result);
+    const id = parseInt(req.params.id);
+    const session = await prisma.session.findUnique({ where: { id } });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    if (!session.transcription) return res.status(400).json({ error: 'No transcription to analyze' });
+
+    // Fire analysis in background, return immediately
+    analyzeSession(id).catch((err) =>
+      console.error('Async AI analysis failed:', err.message || err)
+    );
+
+    res.json({ status: 'analyzing' });
   } catch (err) {
     console.error('Analyze session error:', err.message || err);
     res.status(500).json({ error: err.message || 'AI analysis failed' });

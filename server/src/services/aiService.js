@@ -57,7 +57,7 @@ Respond in the SAME LANGUAGE as the transcription. Return JSON with:
 
   const openai = getClient();
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-4o-mini',
     response_format: { type: 'json_object' },
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.3,
