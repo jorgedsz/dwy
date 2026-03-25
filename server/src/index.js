@@ -114,9 +114,6 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/sessions', sessionRoutes);
-app.use('/api/wa-projects', require('./routes/waProjects'));
-app.use('/api/wa-alerts', require('./routes/waAlerts'));
-app.use('/api/wa-bot-config', require('./routes/waBotConfig'));
 
 // ── WhatsApp API endpoints ─────────────────────────────────
 app.post('/api/whatsapp/sessions', authMiddleware, (req, res) => {

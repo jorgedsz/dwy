@@ -390,13 +390,10 @@ export default function ClientDetailPage() {
                 </h3>
                 <div className="space-y-2">
                   {client.waProjects.map((wp) => (
-                    <Link
+                    <div
                       key={wp.id}
-                      to={`/projects/${wp.id}`}
-                      className="block p-3 rounded-lg transition-all hover:-translate-y-0.5"
+                      className="p-3 rounded-lg"
                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(37,211,102,0.25)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <div
@@ -435,7 +432,7 @@ export default function ClientDetailPage() {
                           </span>
                         )}
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </div>
