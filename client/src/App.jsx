@@ -7,6 +7,9 @@ import DashboardPage from './components/Dashboard/DashboardPage';
 import ClientsListPage from './components/Clients/ClientsListPage';
 import ClientDetailPage from './components/Clients/ClientDetailPage';
 import SessionDetailPage from './components/Sessions/SessionDetailPage';
+import WaProjectsDashboard from './components/Projects/WaProjectsDashboard';
+import WaProjectDetail from './components/Projects/WaProjectDetail';
+import WaAlertsDashboard from './components/Projects/WaAlertsDashboard';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -32,6 +35,9 @@ function App() {
         <Route path="clients" element={<ClientsListPage />} />
         <Route path="clients/:id" element={<ClientDetailPage />} />
         <Route path="sessions/:id" element={<SessionDetailPage />} />
+        <Route path="projects" element={<WaProjectsDashboard />} />
+        <Route path="projects/:id" element={<WaProjectDetail />} />
+        <Route path="alerts" element={<WaAlertsDashboard />} />
       </Route>
     </Routes>
   );
