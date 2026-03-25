@@ -112,7 +112,10 @@ app.use('/api/wa-bot-config', require('./routes/waBotConfig'));
 
 // ── WhatsApp API endpoints ─────────────────────────────────
 app.post('/api/whatsapp/sessions', authMiddleware, (req, res) => {
-  const sessionId = req.body.sessionId || `wa-${req.user.id}-${Date.now()}`;
+  const raw = req.body.sessionId || `wa-${req.user.id}-${Date.now()}`;
+  // LocalAuth only allows alphanumeric, underscores and hyphens
+  const sessionId = raw.replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!sessionId) return res.status(400).json({ error: 'Invalid session name' });
   const entry = createWhatsAppClient(sessionId, req.user.id);
   res.json({ sessionId, status: entry.status });
 });
