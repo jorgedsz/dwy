@@ -155,6 +155,51 @@ app.get('/api/test-ai-json', async (req, res) => {
   }
 });
 
+// Test full analyze flow on a real session (no auth, for debugging)
+app.get('/api/test-analyze/:id', async (req, res) => {
+  try {
+    const sessionId = parseInt(req.params.id);
+    console.log(`[TEST] Starting analyze for session ${sessionId}`);
+
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: { client: true },
+    });
+
+    if (!session) return res.json({ ok: false, error: 'Session not found' });
+    if (!session.transcription) return res.json({ ok: false, error: 'No transcription' });
+
+    console.log(`[TEST] Session found. Client: ${session.client?.name}, transcription: "${session.transcription.substring(0, 50)}..."`);
+
+    const OpenAI = require('openai');
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const prompt = `Analyze this ${session.type} for client "${session.client.name}". Transcription: "${session.transcription}". Return JSON with "summary" and "pendingItems" keys. Respond in the same language as the transcription.`;
+
+    console.log(`[TEST] Calling OpenAI...`);
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content);
+    console.log(`[TEST] OpenAI responded, saving to DB...`);
+
+    await prisma.session.update({
+      where: { id: sessionId },
+      data: { aiSummary: result.summary, pendingItems: result.pendingItems },
+    });
+
+    console.log(`[TEST] Done!`);
+    res.json({ ok: true, result });
+  } catch (err) {
+    console.error(`[TEST] Error:`, err);
+    res.json({ ok: false, error: err.message, type: err.constructor.name });
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/sessions', sessionRoutes);

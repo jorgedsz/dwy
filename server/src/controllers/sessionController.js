@@ -48,12 +48,6 @@ async function create(req, res) {
       },
     });
 
-    if (transcription) {
-      analyzeSession(session.id).catch((err) =>
-        console.error('Async AI analysis failed:', err)
-      );
-    }
-
     res.status(201).json(session);
   } catch (err) {
     console.error('Create session error:', err);
