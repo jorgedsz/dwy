@@ -137,6 +137,24 @@ app.get('/api/test-ai-call', async (req, res) => {
   }
 });
 
+// Test full analyze flow with JSON response_format
+app.get('/api/test-ai-json', async (req, res) => {
+  try {
+    const OpenAI = require('openai');
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      messages: [{ role: 'user', content: 'Analyze this call transcript: "Hi, we discussed pricing for the premium plan. Client agreed to $500/month." Return JSON with "summary" and "pendingItems" keys.' }],
+      temperature: 0.3,
+    });
+    const result = JSON.parse(response.choices[0].message.content);
+    res.json({ ok: true, result });
+  } catch (err) {
+    res.json({ ok: false, error: err.message, type: err.constructor.name, stack: err.stack?.split('\n').slice(0, 3) });
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/sessions', sessionRoutes);
