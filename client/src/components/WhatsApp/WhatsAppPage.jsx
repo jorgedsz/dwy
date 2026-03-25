@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Smartphone, Plus, Trash2, RefreshCw, Wifi, WifiOff, QrCode } from 'lucide-react';
+import { Smartphone, Plus, Trash2, RefreshCw, Wifi, WifiOff, QrCode, Link2, Check, Users } from 'lucide-react';
 import { whatsappAPI } from '../../services/api';
+import api from '../../services/api';
 import socket from '../../socket';
 
 export default function WhatsAppPage() {
@@ -12,6 +13,12 @@ export default function WhatsAppPage() {
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [restarting, setRestarting] = useState(false);
+
+  // DWY groups state
+  const [dwyGroups, setDwyGroups] = useState([]);
+  const [loadingDwy, setLoadingDwy] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [linkingGroup, setLinkingGroup] = useState(null);
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -25,6 +32,13 @@ export default function WhatsAppPage() {
   useEffect(() => {
     fetchSessions();
   }, [fetchSessions]);
+
+  // Fetch clients for the dropdown
+  useEffect(() => {
+    api.get('/clients').then(res => {
+      setClients(Array.isArray(res.data) ? res.data : []);
+    }).catch(() => {});
+  }, []);
 
   // Socket.IO listeners
   useEffect(() => {
@@ -71,6 +85,51 @@ export default function WhatsAppPage() {
     };
   }, [selectedId]);
 
+  // Auto-fetch DWY groups when session becomes ready
+  useEffect(() => {
+    if (status === 'ready' && selectedId) {
+      fetchDwyGroups();
+    }
+  }, [status, selectedId]);
+
+  const fetchDwyGroups = async () => {
+    if (!selectedId) return;
+    setLoadingDwy(true);
+    try {
+      const { data } = await whatsappAPI.getDwyGroups(selectedId);
+      setDwyGroups(data.groups || []);
+    } catch (err) {
+      console.error('Failed to fetch DWY groups:', err);
+    } finally {
+      setLoadingDwy(false);
+    }
+  };
+
+  const handleLinkGroup = async (group, clientId) => {
+    setLinkingGroup(group.id);
+    try {
+      const { data } = await whatsappAPI.linkGroup({
+        whatsappChatId: group.id,
+        groupName: group.name,
+        clientId: clientId ? parseInt(clientId) : null
+      });
+      setDwyGroups(prev => prev.map(g =>
+        g.id === group.id
+          ? {
+              ...g,
+              projectId: data.project.id,
+              clientId: data.project.clientId,
+              clientName: data.project.client?.name || data.project.client?.email || null
+            }
+          : g
+      ));
+    } catch (err) {
+      console.error('Failed to link group:', err);
+    } finally {
+      setLinkingGroup(null);
+    }
+  };
+
   const handleCreate = async () => {
     if (creating) return;
     setCreating(true);
@@ -95,6 +154,7 @@ export default function WhatsAppPage() {
         setSelectedId(null);
         setStatus(null);
         setQr(null);
+        setDwyGroups([]);
       }
       await fetchSessions();
     } catch (err) {
@@ -105,9 +165,12 @@ export default function WhatsAppPage() {
   const handleSelect = async (sessionId) => {
     setSelectedId(sessionId);
     setQr(null);
+    setDwyGroups([]);
     const entry = sessions.find(s => s.sessionId === sessionId);
     setStatus(entry?.status || null);
-    if (entry?.status !== 'ready') {
+    if (entry?.status === 'ready') {
+      // Will auto-fetch DWY groups via useEffect
+    } else if (entry?.status !== 'ready') {
       try {
         const { data } = await whatsappAPI.getQR(sessionId);
         setQr(data.qr);
@@ -239,8 +302,8 @@ export default function WhatsAppPage() {
           )}
         </div>
 
-        {/* Right: QR / Status area */}
-        <div className="lg:col-span-2">
+        {/* Right: QR / Status / DWY Groups area */}
+        <div className="lg:col-span-2 space-y-5">
           {!selectedId && (
             <div className="glass rounded-xl p-12 text-center">
               <QrCode size={48} className="mx-auto mb-4" style={{ color: '#334155' }} />
@@ -290,18 +353,116 @@ export default function WhatsAppPage() {
           )}
 
           {selectedId && status === 'ready' && (
-            <div className="glass rounded-xl p-12 text-center">
-              <div
-                className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
-                style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.25)' }}
-              >
-                <Wifi size={28} style={{ color: '#4ade80' }} />
+            <>
+              {/* Connected status */}
+              <div className="glass rounded-xl p-8 text-center">
+                <div
+                  className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+                  style={{ background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.25)' }}
+                >
+                  <Wifi size={28} style={{ color: '#4ade80' }} />
+                </div>
+                <p className="text-lg font-bold text-white mb-1">Connected</p>
+                <p className="text-sm" style={{ color: '#64748b' }}>
+                  WhatsApp session <span className="font-mono text-xs text-white/70">{selectedId}</span> is active and ready.
+                </p>
               </div>
-              <p className="text-lg font-bold text-white mb-1">Connected</p>
-              <p className="text-sm" style={{ color: '#64748b' }}>
-                WhatsApp session <span className="font-mono text-xs text-white/70">{selectedId}</span> is active and ready.
-              </p>
-            </div>
+
+              {/* DWY Groups */}
+              <div className="glass rounded-xl p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+                      <Users size={15} style={{ color: '#E8792F' }} />
+                      DWY Groups
+                    </h2>
+                    <p className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>
+                      Groups containing "DWY" in their name. Link each to a client.
+                    </p>
+                  </div>
+                  <button
+                    onClick={fetchDwyGroups}
+                    disabled={loadingDwy}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50"
+                    style={{ background: 'rgba(232,121,47,0.12)', color: '#E8792F', border: '1px solid rgba(232,121,47,0.2)' }}
+                  >
+                    <RefreshCw size={12} className={loadingDwy ? 'animate-spin' : ''} />
+                    {loadingDwy ? 'Loading...' : 'Refresh'}
+                  </button>
+                </div>
+
+                {loadingDwy ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8" style={{ border: '3px solid rgba(232,121,47,0.2)', borderTopColor: '#E8792F' }} />
+                  </div>
+                ) : dwyGroups.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <p className="text-sm" style={{ color: '#475569' }}>No DWY groups found</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {dwyGroups.map((g) => (
+                      <div
+                        key={g.id}
+                        className="flex items-center gap-3 p-3 rounded-lg transition-all"
+                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                      >
+                        {/* Group avatar */}
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+                          style={{ background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff' }}
+                        >
+                          {(g.name || 'D')[0].toUpperCase()}
+                        </div>
+
+                        {/* Group info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-semibold text-white truncate">{g.name}</p>
+                          <p className="text-[11px]" style={{ color: '#64748b' }}>{g.participantCount} participants</p>
+                        </div>
+
+                        {/* Link status badge */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {g.clientId ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold"
+                              style={{ background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)' }}
+                            >
+                              <Check size={12} />
+                              {g.clientName}
+                            </span>
+                          ) : (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold"
+                              style={{ background: 'rgba(255,255,255,0.04)', color: '#64748b', border: '1px solid rgba(255,255,255,0.08)' }}
+                            >
+                              <Link2 size={12} />
+                              Unlinked
+                            </span>
+                          )}
+
+                          {/* Client dropdown */}
+                          <select
+                            value={g.clientId || ''}
+                            onChange={(e) => handleLinkGroup(g, e.target.value)}
+                            disabled={linkingGroup === g.id}
+                            className="px-2 py-1.5 rounded-lg text-[11px] font-medium text-white outline-none disabled:opacity-50 cursor-pointer"
+                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', minWidth: '140px' }}
+                          >
+                            <option value="">-- Select Client --</option>
+                            {clients.map(c => (
+                              <option key={c.id} value={c.id}>
+                                {c.name || c.email}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
           )}
 
           {selectedId && status === 'auth_failure' && (

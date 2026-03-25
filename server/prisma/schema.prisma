@@ -27,6 +27,7 @@ model Client {
   notes       String?
   assignments ClientAssignment[]
   sessions    Session[]
+  waProjects  WaProject[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 }
@@ -78,6 +79,8 @@ model WaProject {
   objetivoProyecto  String?
   userId            Int
   user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId          Int?
+  client            Client?          @relation(fields: [clientId], references: [id], onDelete: SetNull)
   messages          WaProjectMessage[]
   alerts            WaProjectAlert[]
   createdAt         DateTime         @default(now())

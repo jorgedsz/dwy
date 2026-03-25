@@ -44,6 +44,17 @@ async function getById(req, res) {
       include: {
         sessions: { orderBy: { date: 'desc' } },
         ...assignmentInclude,
+        waProjects: {
+          select: {
+            id: true,
+            nombre: true,
+            estado: true,
+            whatsappChatId: true,
+            totalMensajes: true,
+            alertasCount: true,
+            ultimaActividad: true,
+          },
+        },
       },
     });
     if (!client) return res.status(404).json({ error: 'Client not found' });

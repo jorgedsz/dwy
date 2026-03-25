@@ -96,6 +96,8 @@ export const whatsappAPI = {
   getQR: (sessionId) => api.get(`/whatsapp/sessions/${sessionId}/qr`),
   getGroups: (sessionId) => api.get(`/whatsapp/sessions/${sessionId}/groups`),
   restartSession: (sessionId) => api.post(`/whatsapp/sessions/${sessionId}/restart`),
+  getDwyGroups: (sessionId) => api.get(`/whatsapp/sessions/${sessionId}/dwy-groups`),
+  linkGroup: (data) => api.post('/whatsapp/link-group', data),
 };
 
 export default api;

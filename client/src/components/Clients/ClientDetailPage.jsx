@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit, Trash2, Plus, Phone, Mail, Building, User, Calendar,
-  Video, FileText, Clock, Shield, Settings, Users, Sparkles, ChevronLeft, ChevronRight
+  Video, FileText, Clock, Shield, Settings, Users, Sparkles, ChevronLeft, ChevronRight,
+  MessageSquare, AlertTriangle
 } from 'lucide-react';
 import api from '../../services/api';
 import ClientForm from './ClientForm';
@@ -379,6 +380,66 @@ export default function ClientDetailPage() {
                 </div>
               ))}
             </div>
+
+            {/* WhatsApp Groups */}
+            {client.waProjects && client.waProjects.length > 0 && (
+              <div className="glass rounded-xl p-5">
+                <h3 className="text-[11px] font-bold uppercase mb-3 flex items-center gap-2" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>
+                  <MessageSquare size={13} style={{ color: '#25D366' }} />
+                  WhatsApp Groups
+                </h3>
+                <div className="space-y-2">
+                  {client.waProjects.map((wp) => (
+                    <Link
+                      key={wp.id}
+                      to={`/projects/${wp.id}`}
+                      className="block p-3 rounded-lg transition-all hover:-translate-y-0.5"
+                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(37,211,102,0.25)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                          style={{ background: 'linear-gradient(135deg, #25D366, #128C7E)', color: '#fff' }}
+                        >
+                          {(wp.nombre || 'W')[0].toUpperCase()}
+                        </div>
+                        <span className="text-[13px] font-semibold text-white truncate">{wp.nombre}</span>
+                        <span
+                          className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ml-auto flex-shrink-0"
+                          style={{
+                            letterSpacing: '0.04em',
+                            ...(wp.estado === 'activo'
+                              ? { background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)' }
+                              : { background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' })
+                          }}
+                        >
+                          {wp.estado}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-[11px]" style={{ color: '#64748b' }}>
+                        <span className="flex items-center gap-1">
+                          <MessageSquare size={11} />
+                          {wp.totalMensajes} msgs
+                        </span>
+                        {wp.alertasCount > 0 && (
+                          <span className="flex items-center gap-1" style={{ color: '#f87171' }}>
+                            <AlertTriangle size={11} />
+                            {wp.alertasCount} alerts
+                          </span>
+                        )}
+                        {wp.ultimaActividad && (
+                          <span>
+                            Last: {new Date(wp.ultimaActividad).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
