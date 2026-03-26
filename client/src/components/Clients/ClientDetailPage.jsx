@@ -177,8 +177,11 @@ export default function ClientDetailPage() {
   if (loading) return <div style={{ color: '#64748b' }}>Loading...</div>;
   if (!client) return <div style={{ color: '#64748b' }}>Client not found</div>;
 
-  const filteredSessions = client.sessions;
+  const filteredSessions = typeFilter === 'all'
+    ? client.sessions
+    : client.sessions.filter((s) => s.type === typeFilter);
 
+  const totalLessons = client.sessions.filter((s) => s.type === 'lesson').length;
   const withSummary = client.sessions.filter((s) => s.aiSummary).length;
   const initials = client.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const csAssigned = (client.assignments || []).filter((a) => a.role === 'cs');
@@ -357,15 +360,15 @@ export default function ClientDetailPage() {
                 {contractedSessions && (
                   <div className="mt-2">
                     <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span style={{ color: '#64748b' }}>Used</span>
-                      <span style={{ color: '#F1F5F9' }}>{client.sessions.length}/{contractedSessions}</span>
+                      <span style={{ color: '#64748b' }}>Lessons</span>
+                      <span style={{ color: '#F1F5F9' }}>{totalLessons}/{contractedSessions}</span>
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                       <div
                         className="h-full rounded-full transition-all"
                         style={{
-                          width: `${Math.min((client.sessions.length / contractedSessions) * 100, 100)}%`,
-                          background: client.sessions.length >= contractedSessions
+                          width: `${Math.min((totalLessons / contractedSessions) * 100, 100)}%`,
+                          background: totalLessons >= contractedSessions
                             ? 'linear-gradient(90deg, #f87171, #ef4444)'
                             : 'linear-gradient(90deg, #E8792F, #f59e0b)',
                         }}
@@ -380,7 +383,7 @@ export default function ClientDetailPage() {
                 <div className="text-[10px] font-bold uppercase mb-2" style={{ color: '#475569', letterSpacing: '0.06em' }}>Summary</div>
                 <div className="space-y-1.5">
                   {[
-                    { label: 'Sessions', value: client.sessions.length, color: '#60a5fa' },
+                    { label: 'Lessons', value: totalLessons, color: '#60a5fa' },
                     { label: 'AI Reports', value: withSummary, color: '#E8792F' },
                   ].map(({ label, value, color }) => (
                     <div key={label} className="flex items-center justify-between">
@@ -442,11 +445,12 @@ export default function ClientDetailPage() {
           {/* Left: Stats + Recent Timeline */}
           <div className="lg:col-span-2 space-y-5">
             {/* Stats row */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 { icon: Video, label: 'Sessions', value: client.sessions.length, color: '#60a5fa' },
+                { icon: FileText, label: 'Lessons', value: totalLessons, color: '#4ade80' },
+                { icon: Phone, label: 'Calls', value: client.sessions.filter((s) => s.type === 'commercial_call').length, color: '#a855f7' },
                 { icon: Sparkles, label: 'AI Reports', value: withSummary, color: '#E8792F' },
-                { icon: FileText, label: 'With Notes', value: client.sessions.filter((s) => s.transcription).length, color: '#4ade80' },
               ].map(({ icon: Icon, label, value, color }) => (
                 <div key={label} className="glass rounded-xl p-4 relative overflow-hidden">
                   <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: `linear-gradient(90deg, ${color}, transparent)` }} />
@@ -492,10 +496,12 @@ export default function ClientDetailPage() {
                                     className="text-[10px] font-bold uppercase px-2 py-0.5 rounded"
                                     style={{
                                       letterSpacing: '0.04em',
-                                      background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)',
+                                      ...(s.type === 'commercial_call'
+                                        ? { background: 'rgba(168,85,247,0.12)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.2)' }
+                                        : { background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)' })
                                     }}
                                   >
-                                    Lesson
+                                    {s.type === 'commercial_call' ? 'Call' : 'Lesson'}
                                   </span>
                                   {s.aiSummary && (
                                     <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)', letterSpacing: '0.04em' }}>
@@ -621,7 +627,25 @@ export default function ClientDetailPage() {
       {tab === 'sessions' && (
         <>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[13px] font-bold uppercase" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>All Sessions</h2>
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1">
+                {['all', 'commercial_call', 'lesson'].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTypeFilter(t)}
+                    className="px-3 py-1 text-[10px] font-bold uppercase rounded-lg transition-all"
+                    style={{
+                      letterSpacing: '0.04em',
+                      ...(typeFilter === t
+                        ? { background: 'rgba(232,121,47,0.10)', color: '#E8792F', border: '1px solid rgba(232,121,47,0.25)' }
+                        : { background: 'rgba(255,255,255,0.04)', color: '#64748b', border: '1px solid transparent' })
+                    }}
+                  >
+                    {t === 'all' ? 'All' : t === 'commercial_call' ? 'Calls' : 'Lessons'}
+                  </button>
+                ))}
+              </div>
+            </div>
             <button
               onClick={() => setShowSessionForm(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-[11px] font-bold uppercase transition-transform hover:-translate-y-0.5"
@@ -658,10 +682,12 @@ export default function ClientDetailPage() {
                       className="text-[10px] font-bold uppercase px-2 py-0.5 rounded"
                       style={{
                         letterSpacing: '0.04em',
-                        background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)',
+                        ...(s.type === 'commercial_call'
+                          ? { background: 'rgba(168,85,247,0.12)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.2)' }
+                          : { background: 'rgba(96,165,250,0.12)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)' })
                       }}
                     >
-                      Lesson
+                      {s.type === 'commercial_call' ? 'Call' : 'Lesson'}
                     </span>
                   </div>
                 </Link>
