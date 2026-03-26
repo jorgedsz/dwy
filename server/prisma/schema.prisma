@@ -29,6 +29,8 @@ model Client {
   portalToken         String?            @unique
   startDate           DateTime?
   contractedSessions  Int?
+  twilioAccountSid    String?            @db.Text
+  twilioAuthToken     String?            @db.Text
   assignments         ClientAssignment[]
   sessions            Session[]
   waProjects          WaProject[]

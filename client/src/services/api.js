@@ -55,4 +55,9 @@ export const calendarAPI = {
   disconnect: (id) => api.delete(`/calendar/integrations/${id}`),
 };
 
+// Twilio API
+export const twilioAPI = {
+  getLastCall: (clientId) => api.get(`/clients/${clientId}/twilio/last-call`),
+};
+
 export default api;
