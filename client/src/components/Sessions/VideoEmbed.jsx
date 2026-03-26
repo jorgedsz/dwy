@@ -15,6 +15,10 @@ function getEmbedUrl(url) {
   match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
   if (match) return { type: 'iframe', src: `https://drive.google.com/file/d/${match[1]}/preview` };
 
+  // Fathom: fathom.video/share/XYZ or app.fathom.video/share/XYZ
+  match = url.match(/fathom\.video\/share\/([a-zA-Z0-9_-]+)/);
+  if (match) return { type: 'iframe', src: `https://fathom.video/share/${match[1]}/embed` };
+
   return { type: 'link', src: url };
 }
 
