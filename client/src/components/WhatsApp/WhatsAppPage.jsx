@@ -5,6 +5,8 @@ import { whatsappAPI } from '../../services/api';
 import api from '../../services/api';
 import socket from '../../socket';
 
+const DEFAULT_SESSION = 'wa-573213957990';
+
 export default function WhatsAppPage() {
   const [sessions, setSessions] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -29,9 +31,48 @@ export default function WhatsAppPage() {
     }
   }, []);
 
+  // On mount: fetch sessions, then auto-create/select the default one
   useEffect(() => {
-    fetchSessions();
+    async function init() {
+      await fetchSessions();
+    }
+    init();
   }, [fetchSessions]);
+
+  useEffect(() => {
+    if (sessions.length === 0) return;
+    const existing = sessions.find(s => s.sessionId === DEFAULT_SESSION);
+    if (existing) {
+      if (selectedId !== DEFAULT_SESSION) handleSelect(DEFAULT_SESSION);
+    }
+  }, [sessions]);
+
+  // Auto-create default session if it doesn't exist after first fetch
+  const [autoCreated, setAutoCreated] = useState(false);
+  useEffect(() => {
+    if (autoCreated || creating) return;
+    if (sessions.length === 0 && !creating) {
+      // First load, no sessions yet — wait for fetch to complete
+      return;
+    }
+    const exists = sessions.find(s => s.sessionId === DEFAULT_SESSION);
+    if (!exists && !autoCreated) {
+      setAutoCreated(true);
+      (async () => {
+        setCreating(true);
+        try {
+          const { data } = await whatsappAPI.createSession(DEFAULT_SESSION);
+          setSelectedId(data.sessionId);
+          setStatus(data.status);
+          await fetchSessions();
+        } catch (err) {
+          console.error('Failed to auto-create default session:', err);
+        } finally {
+          setCreating(false);
+        }
+      })();
+    }
+  }, [sessions, autoCreated, creating]);
 
   // Fetch clients for the dropdown
   useEffect(() => {
