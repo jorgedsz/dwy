@@ -88,11 +88,15 @@ async function syncAssignments(clientId, csUserIds, opsUserIds) {
 
 async function create(req, res) {
   try {
-    const { name, email, phone, company, notes, csUserIds, opsUserIds } = req.body;
+    const { name, email, phone, company, notes, startDate, contractedSessions, csUserIds, opsUserIds } = req.body;
     if (!name) return res.status(400).json({ error: 'Name is required' });
 
     const client = await prisma.client.create({
-      data: { name, email, phone, company, notes },
+      data: {
+        name, email, phone, company, notes,
+        startDate: startDate ? new Date(startDate) : null,
+        contractedSessions: contractedSessions != null ? parseInt(contractedSessions) : null,
+      },
     });
 
     await syncAssignments(client.id, csUserIds || [], opsUserIds || []);
@@ -110,13 +114,14 @@ async function create(req, res) {
 
 async function update(req, res) {
   try {
-    const { name, email, phone, company, notes, csUserIds, opsUserIds } = req.body;
+    const { name, email, phone, company, notes, startDate, contractedSessions, csUserIds, opsUserIds } = req.body;
     const id = parseInt(req.params.id);
 
-    await prisma.client.update({
-      where: { id },
-      data: { name, email, phone, company, notes },
-    });
+    const data = { name, email, phone, company, notes };
+    if (startDate !== undefined) data.startDate = startDate ? new Date(startDate) : null;
+    if (contractedSessions !== undefined) data.contractedSessions = contractedSessions != null ? parseInt(contractedSessions) : null;
+
+    await prisma.client.update({ where: { id }, data });
 
     if (csUserIds !== undefined || opsUserIds !== undefined) {
       // Fetch current assignments if only one role is being updated

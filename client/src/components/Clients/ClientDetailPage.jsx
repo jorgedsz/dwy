@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit, Trash2, Plus, Phone, Mail, Building, User, Calendar,
   Video, FileText, Clock, Shield, Settings, Users, Sparkles, ChevronLeft, ChevronRight,
-  MessageSquare, AlertTriangle, Share2, Check
+  MessageSquare, AlertTriangle, Share2, Check, X
 } from 'lucide-react';
 import api, { portalAPI } from '../../services/api';
 import ClientForm from './ClientForm';
@@ -82,6 +82,9 @@ export default function ClientDetailPage() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [portalCopied, setPortalCopied] = useState(false);
+  const [editingSince, setEditingSince] = useState(false);
+  const [sinceValue, setSinceValue] = useState('');
+  const [contractedSessions, setContractedSessions] = useState(null);
 
   const load = async () => {
     try {
@@ -95,6 +98,14 @@ export default function ClientDetailPage() {
   };
 
   useEffect(() => { load(); }, [id]);
+
+  useEffect(() => {
+    if (client) {
+      const d = client.startDate || client.createdAt;
+      setSinceValue(d ? new Date(d).toISOString().split('T')[0] : '');
+      setContractedSessions(client.contractedSessions);
+    }
+  }, [client]);
 
   const handleUpdate = async (data) => {
     try {
@@ -127,6 +138,27 @@ export default function ClientDetailPage() {
       }
     } catch (err) {
       console.error('Create session error:', err);
+    }
+  };
+
+  const handleSaveSince = async (dateStr) => {
+    try {
+      await api.put(`/clients/${id}`, { startDate: dateStr || null });
+      setEditingSince(false);
+      load();
+    } catch (err) {
+      console.error('Save start date error:', err);
+    }
+  };
+
+  const handleContractedChange = async (value) => {
+    const val = value === '' ? null : parseInt(value);
+    setContractedSessions(val);
+    try {
+      await api.put(`/clients/${id}`, { contractedSessions: val });
+      load();
+    } catch (err) {
+      console.error('Save contracted sessions error:', err);
     }
   };
 
@@ -221,9 +253,45 @@ export default function ClientDetailPage() {
                   <Phone size={12} />{client.phone}
                 </span>
               )}
-              <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: '#64748b' }}>
-                <Calendar size={12} />Client since {new Date(client.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}
-              </span>
+              {editingSince ? (
+                <span className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(232,121,47,0.4)' }}>
+                  <Calendar size={12} style={{ color: '#E8792F' }} />
+                  <input
+                    type="date"
+                    value={sinceValue}
+                    onChange={(e) => setSinceValue(e.target.value)}
+                    className="bg-transparent text-xs outline-none"
+                    style={{ color: '#fff', colorScheme: 'dark' }}
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => handleSaveSince(sinceValue)}
+                    className="px-1.5 py-0.5 rounded text-[10px] font-bold"
+                    style={{ background: 'rgba(232,121,47,0.2)', color: '#E8792F' }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingSince(false)}
+                    className="px-1 py-0.5 rounded text-[10px]"
+                    style={{ color: '#64748b' }}
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ) : (
+                <button
+                  onClick={() => setEditingSince(true)}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: '#64748b' }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(232,121,47,0.3)'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}
+                  title="Click to edit start date"
+                >
+                  <Calendar size={12} />Client since {new Date(client.startDate || client.createdAt).toLocaleDateString('en', { month: 'short', year: 'numeric' })}
+                  <Edit size={10} style={{ color: '#475569' }} />
+                </button>
+              )}
             </div>
 
             {client.notes && (
@@ -270,6 +338,83 @@ export default function ClientDetailPage() {
                 <Trash2 size={13} />Delete
               </button>
             </div>
+          </div>
+
+          {/* Right-side report card */}
+          <div className="hidden lg:flex flex-col gap-3 w-56 flex-shrink-0">
+            {/* Contracted Sessions */}
+            <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="text-[10px] font-bold uppercase mb-2" style={{ color: '#475569', letterSpacing: '0.06em' }}>Contracted Sessions</div>
+              <select
+                value={contractedSessions ?? ''}
+                onChange={(e) => handleContractedChange(e.target.value)}
+                className="w-full px-2.5 py-1.5 rounded-lg text-sm font-semibold outline-none cursor-pointer"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', colorScheme: 'dark' }}
+              >
+                <option value="">Not set</option>
+                {[4, 8, 12, 16, 20, 24].map((n) => (
+                  <option key={n} value={n}>{n} sessions</option>
+                ))}
+              </select>
+              {contractedSessions && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span style={{ color: '#64748b' }}>Used</span>
+                    <span style={{ color: '#F1F5F9' }}>{client.sessions.length} / {contractedSessions}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.min((client.sessions.length / contractedSessions) * 100, 100)}%`,
+                        background: client.sessions.length >= contractedSessions
+                          ? 'linear-gradient(90deg, #f87171, #ef4444)'
+                          : 'linear-gradient(90deg, #E8792F, #f59e0b)',
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Stats */}
+            <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="text-[10px] font-bold uppercase mb-2.5" style={{ color: '#475569', letterSpacing: '0.06em' }}>Summary</div>
+              <div className="space-y-2">
+                {[
+                  { label: 'Total Sessions', value: client.sessions.length, color: '#60a5fa' },
+                  { label: 'Calls', value: totalCalls, color: '#a855f7' },
+                  { label: 'Lessons', value: totalLessons, color: '#4ade80' },
+                  { label: 'AI Reports', value: withSummary, color: '#E8792F' },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="flex items-center justify-between">
+                    <span className="text-[11px]" style={{ color: '#64748b' }}>{label}</span>
+                    <span className="text-[13px] font-bold" style={{ color }}>{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Team */}
+            {(csAssigned.length > 0 || opsAssigned.length > 0) && (
+              <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="text-[10px] font-bold uppercase mb-2.5" style={{ color: '#475569', letterSpacing: '0.06em' }}>Team</div>
+                <div className="space-y-1.5">
+                  {[...csAssigned, ...opsAssigned].map((a) => (
+                    <div key={a.id} className="flex items-center gap-2">
+                      <div
+                        className="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0"
+                        style={{ background: a.role === 'cs' ? '#3b82f6' : '#a855f7' }}
+                      >
+                        {(a.user.name || a.user.email)[0].toUpperCase()}
+                      </div>
+                      <span className="text-[11px] truncate" style={{ color: '#94a3b8' }}>{a.user.name || a.user.email}</span>
+                      <span className="text-[9px] font-bold uppercase ml-auto flex-shrink-0" style={{ color: a.role === 'cs' ? '#3b82f6' : '#a855f7' }}>{a.role}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

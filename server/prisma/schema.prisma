@@ -20,18 +20,20 @@ model User {
 }
 
 model Client {
-  id          Int                @id @default(autoincrement())
-  name        String
-  email       String?
-  phone       String?
-  company     String?
-  notes       String?
-  portalToken String?            @unique
-  assignments ClientAssignment[]
-  sessions    Session[]
-  waProjects  WaProject[]
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  id                  Int                @id @default(autoincrement())
+  name                String
+  email               String?
+  phone               String?
+  company             String?
+  notes               String?
+  portalToken         String?            @unique
+  startDate           DateTime?
+  contractedSessions  Int?
+  assignments         ClientAssignment[]
+  sessions            Session[]
+  waProjects          WaProject[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 }
 
 model ClientAssignment {
