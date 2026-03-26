@@ -101,7 +101,25 @@ Respond in the SAME LANGUAGE as the transcription. Return JSON with:
     },
   });
 
-  console.log(`[AI] Done! Session ${sessionId} analysis complete.`);
+  // Parse pendingItems text into individual PendingTask rows
+  console.log(`[AI] Step 6: Creating pending tasks...`);
+  const taskLines = pendingItems
+    .split('\n')
+    .map(line => line.replace(/^[\s]*[-•*]\s*/, '').replace(/^\d+\.\s*/, '').trim())
+    .filter(line => line.length > 0);
+
+  if (taskLines.length > 0) {
+    // Delete only uncompleted tasks (preserve completed ones)
+    await prisma.pendingTask.deleteMany({
+      where: { sessionId, completed: false },
+    });
+
+    await prisma.pendingTask.createMany({
+      data: taskLines.map(text => ({ sessionId, text })),
+    });
+  }
+
+  console.log(`[AI] Done! Session ${sessionId} analysis complete. ${taskLines.length} tasks created.`);
   return { summary, pendingItems };
 }
 

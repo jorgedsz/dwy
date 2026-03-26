@@ -50,20 +50,33 @@ model ClientAssignment {
 }
 
 model Session {
-  id            Int      @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   clientId      Int
-  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client        Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
   type          String
   title         String
   date          DateTime
   recordingUrl  String?
-  transcription String?  @db.Text
-  aiSummary     String?  @db.Text
-  pendingItems  String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  transcription String?        @db.Text
+  aiSummary     String?        @db.Text
+  pendingItems  String?        @db.Text
+  pendingTasks  PendingTask[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@index([clientId, date])
+}
+
+model PendingTask {
+  id          Int       @id @default(autoincrement())
+  sessionId   Int
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  text        String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([sessionId])
 }
 
 model WaProject {

@@ -60,4 +60,14 @@ export const twilioAPI = {
   getLastCall: (clientId) => api.get(`/clients/${clientId}/twilio/last-call`),
 };
 
+// Task API
+export const taskAPI = {
+  toggle: (taskId) => api.patch(`/sessions/tasks/${taskId}/toggle`),
+};
+
+// Dashboard API
+export const dashboardAPI = {
+  getPendingTasks: () => api.get('/dashboard/pending-tasks'),
+};
+
 export default api;

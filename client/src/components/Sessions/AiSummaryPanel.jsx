@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, RefreshCw, CheckCircle, Loader, AlertCircle } from 'lucide-react';
-import api from '../../services/api';
+import { Sparkles, RefreshCw, CheckCircle, Loader, AlertCircle, Square, CheckSquare } from 'lucide-react';
+import api, { taskAPI } from '../../services/api';
 
 export default function AiSummaryPanel({ session, onUpdate }) {
   const [analyzing, setAnalyzing] = useState(false);
@@ -19,8 +19,10 @@ export default function AiSummaryPanel({ session, onUpdate }) {
     setAnalyzing(true);
     setError(null);
     try {
-      const res = await api.post(`/sessions/${session.id}/analyze`, {}, { timeout: 60000 });
-      onUpdate({ aiSummary: res.data.summary, pendingItems: res.data.pendingItems });
+      await api.post(`/sessions/${session.id}/analyze`, {}, { timeout: 60000 });
+      // Refetch session to get updated pendingTasks
+      const refreshed = await api.get(`/sessions/${session.id}`);
+      onUpdate({ aiSummary: refreshed.data.aiSummary, pendingItems: refreshed.data.pendingItems, pendingTasks: refreshed.data.pendingTasks });
     } catch (err) {
       console.error('Analyze error:', err);
       const msg = err.response?.data?.error || err.message || 'Analysis failed';
@@ -33,6 +35,22 @@ export default function AiSummaryPanel({ session, onUpdate }) {
   const handleRetry = () => {
     triggeredRef.current = false;
     runAnalysis();
+  };
+
+  const handleToggleTask = async (taskId) => {
+    // Optimistic update
+    const updatedTasks = session.pendingTasks.map(t =>
+      t.id === taskId ? { ...t, completed: !t.completed, completedAt: t.completed ? null : new Date().toISOString() } : t
+    );
+    onUpdate({ pendingTasks: updatedTasks });
+
+    try {
+      await taskAPI.toggle(taskId);
+    } catch (err) {
+      console.error('Toggle task error:', err);
+      // Revert on failure
+      onUpdate({ pendingTasks: session.pendingTasks });
+    }
   };
 
   if (!session.transcription && !session.aiSummary) {
@@ -86,13 +104,46 @@ export default function AiSummaryPanel({ session, onUpdate }) {
         </div>
       )}
 
-      {session.pendingItems && (
+      {(session.pendingTasks?.length > 0 || session.pendingItems) && (
         <div className="rounded-xl p-5" style={{ background: 'rgba(245,158,11,0.06)', backdropFilter: 'blur(12px)', border: '1px solid rgba(245,158,11,0.2)', boxShadow: '0 4px 24px rgba(245,158,11,0.08), inset 0 1px 0 rgba(245,158,11,0.1)' }}>
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle size={15} style={{ color: '#f59e0b' }} />
             <h3 className="text-[13px] font-bold uppercase" style={{ color: '#f59e0b', letterSpacing: '0.04em' }}>Pending Items</h3>
           </div>
-          <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.65' }}>{session.pendingItems}</p>
+          {session.pendingTasks?.length > 0 ? (
+            <div className="space-y-2">
+              {session.pendingTasks.map(task => (
+                <button
+                  key={task.id}
+                  onClick={() => handleToggleTask(task.id)}
+                  className="flex items-start gap-2.5 w-full text-left group"
+                >
+                  {task.completed ? (
+                    <CheckSquare size={16} className="mt-0.5 flex-shrink-0" style={{ color: '#4ade80' }} />
+                  ) : (
+                    <Square size={16} className="mt-0.5 flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: '#f59e0b' }} />
+                  )}
+                  <span
+                    className="text-[13px]"
+                    style={{
+                      color: task.completed ? '#64748b' : '#cbd5e0',
+                      textDecoration: task.completed ? 'line-through' : 'none',
+                      lineHeight: '1.65',
+                    }}
+                  >
+                    {task.text}
+                    {task.completed && task.completedAt && (
+                      <span className="text-[11px] ml-2" style={{ color: '#4ade80' }}>
+                        {new Date(task.completedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.65' }}>{session.pendingItems}</p>
+          )}
         </div>
       )}
 

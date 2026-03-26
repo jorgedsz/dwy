@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Video, Clock } from 'lucide-react';
-import api from '../../services/api';
+import { Users, Video, Clock, ListChecks, Square, CheckSquare } from 'lucide-react';
+import api, { dashboardAPI, taskAPI } from '../../services/api';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({ clients: 0, sessions: 0, recent: [] });
+  const [pendingGroups, setPendingGroups] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const clientsRes = await api.get('/clients');
+        const [clientsRes, pendingRes] = await Promise.all([
+          api.get('/clients'),
+          dashboardAPI.getPendingTasks(),
+        ]);
         const clients = clientsRes.data;
         let allSessions = [];
         for (const c of clients) {
@@ -25,6 +29,7 @@ export default function DashboardPage() {
           sessions: allSessions.length,
           recent: allSessions.slice(0, 5),
         });
+        setPendingGroups(pendingRes.data);
       } catch (err) {
         console.error('Dashboard load error:', err);
       } finally {
@@ -34,7 +39,30 @@ export default function DashboardPage() {
     load();
   }, []);
 
+  const handleToggleTask = async (taskId) => {
+    // Optimistically remove from list
+    setPendingGroups(prev =>
+      prev
+        .map(group => ({
+          ...group,
+          tasks: group.tasks.filter(t => t.id !== taskId),
+        }))
+        .filter(group => group.tasks.length > 0)
+    );
+
+    try {
+      await taskAPI.toggle(taskId);
+    } catch (err) {
+      console.error('Toggle task error:', err);
+      // Refetch on error
+      const res = await dashboardAPI.getPendingTasks();
+      setPendingGroups(res.data);
+    }
+  };
+
   if (loading) return <div style={{ color: '#64748b' }}>Loading dashboard...</div>;
+
+  const totalPending = pendingGroups.reduce((sum, g) => sum + g.tasks.length, 0);
 
   return (
     <div>
@@ -42,7 +70,7 @@ export default function DashboardPage() {
         Dashboard
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-8">
         <div className="glass rounded-xl p-5 relative overflow-hidden">
           <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, #4ade80, transparent)' }} />
           <div className="flex items-center gap-3 mb-2">
@@ -59,7 +87,59 @@ export default function DashboardPage() {
           </div>
           <div className="text-3xl font-extrabold text-white">{stats.sessions}</div>
         </div>
+        <div className="glass rounded-xl p-5 relative overflow-hidden">
+          <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'linear-gradient(90deg, #f59e0b, transparent)' }} />
+          <div className="flex items-center gap-3 mb-2">
+            <ListChecks size={18} style={{ color: '#f59e0b' }} />
+            <span className="text-xs font-semibold uppercase" style={{ color: '#64748b', letterSpacing: '0.06em' }}>Pending Tasks</span>
+          </div>
+          <div className="text-3xl font-extrabold text-white">{totalPending}</div>
+        </div>
       </div>
+
+      {pendingGroups.length > 0 && (
+        <div className="glass rounded-xl overflow-hidden mb-6">
+          <div className="p-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <h2 className="text-[13px] font-bold uppercase flex items-center gap-2 text-white" style={{ letterSpacing: '0.06em' }}>
+              <ListChecks size={15} style={{ color: '#f59e0b' }} />
+              Pending Tasks
+            </h2>
+          </div>
+          <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+            {pendingGroups.map(group => (
+              <div key={group.clientId} className="px-5 py-4">
+                <Link
+                  to={`/clients/${group.clientId}`}
+                  className="text-[13px] font-bold mb-2.5 flex items-center gap-2 hover:underline"
+                  style={{ color: '#E8792F' }}
+                >
+                  {group.clientName}
+                  <span className="text-[11px] font-normal px-1.5 py-0.5 rounded" style={{ background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>
+                    {group.tasks.length}
+                  </span>
+                </Link>
+                <div className="space-y-1.5">
+                  {group.tasks.map(task => (
+                    <button
+                      key={task.id}
+                      onClick={() => handleToggleTask(task.id)}
+                      className="flex items-start gap-2.5 w-full text-left group"
+                    >
+                      <Square size={15} className="mt-0.5 flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: '#f59e0b' }} />
+                      <div className="min-w-0">
+                        <span className="text-[13px]" style={{ color: '#cbd5e0', lineHeight: '1.65' }}>{task.text}</span>
+                        <span className="text-[11px] ml-2" style={{ color: '#475569' }}>
+                          {task.sessionTitle}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="glass rounded-xl overflow-hidden">
         <div className="p-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>

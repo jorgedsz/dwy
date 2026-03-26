@@ -20,7 +20,10 @@ async function getById(req, res) {
   try {
     const session = await prisma.session.findUnique({
       where: { id: parseInt(req.params.id) },
-      include: { client: { select: { id: true, name: true } } },
+      include: {
+        client: { select: { id: true, name: true } },
+        pendingTasks: { orderBy: { id: 'asc' } },
+      },
     });
     if (!session) return res.status(404).json({ error: 'Session not found' });
     res.json(session);
@@ -175,4 +178,24 @@ async function clientAnalysis(req, res) {
   }
 }
 
-module.exports = { listByClient, getById, create, update, remove, analyze, analyzeAll, testAi, clientAnalysis };
+async function toggleTask(req, res) {
+  try {
+    const taskId = parseInt(req.params.taskId);
+    const task = await prisma.pendingTask.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Task not found' });
+
+    const updated = await prisma.pendingTask.update({
+      where: { id: taskId },
+      data: {
+        completed: !task.completed,
+        completedAt: task.completed ? null : new Date(),
+      },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('Toggle task error:', err);
+    res.status(500).json({ error: 'Failed to toggle task' });
+  }
+}
+
+module.exports = { listByClient, getById, create, update, remove, analyze, analyzeAll, testAi, clientAnalysis, toggleTask };

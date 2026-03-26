@@ -12,6 +12,7 @@ const clientRoutes = require('./routes/clients');
 const sessionRoutes = require('./routes/sessions');
 const portalRoutes = require('./routes/portal');
 const calendarRoutes = require('./routes/calendar');
+const dashboardRoutes = require('./routes/dashboard');
 const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
@@ -207,6 +208,7 @@ app.use('/api/clients', clientRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/portal', portalRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // ── WhatsApp API endpoints ─────────────────────────────────
 app.post('/api/whatsapp/sessions', authMiddleware, (req, res) => {
