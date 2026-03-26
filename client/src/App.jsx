@@ -8,6 +8,8 @@ import ClientsListPage from './components/Clients/ClientsListPage';
 import ClientDetailPage from './components/Clients/ClientDetailPage';
 import SessionDetailPage from './components/Sessions/SessionDetailPage';
 import WhatsAppPage from './components/WhatsApp/WhatsAppPage';
+import ClientPortalPage from './components/Portal/ClientPortalPage';
+import SessionPortalPage from './components/Portal/SessionPortalPage';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -21,6 +23,8 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/portal/:token" element={<ClientPortalPage />} />
+      <Route path="/portal/:token/sessions/:sessionId" element={<SessionPortalPage />} />
       <Route
         path="/"
         element={

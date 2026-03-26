@@ -10,6 +10,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const clientRoutes = require('./routes/clients');
 const sessionRoutes = require('./routes/sessions');
+const portalRoutes = require('./routes/portal');
 const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
@@ -203,6 +204,7 @@ app.get('/api/test-analyze/:id', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/sessions', sessionRoutes);
+app.use('/api/portal', portalRoutes);
 
 // ── WhatsApp API endpoints ─────────────────────────────────
 app.post('/api/whatsapp/sessions', authMiddleware, (req, res) => {

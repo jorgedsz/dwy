@@ -25,6 +25,7 @@ model Client {
   phone       String?
   company     String?
   notes       String?
+  portalToken String?            @unique
   assignments ClientAssignment[]
   sessions    Session[]
   waProjects  WaProject[]

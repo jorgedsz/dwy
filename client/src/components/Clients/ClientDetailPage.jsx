@@ -3,9 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit, Trash2, Plus, Phone, Mail, Building, User, Calendar,
   Video, FileText, Clock, Shield, Settings, Users, Sparkles, ChevronLeft, ChevronRight,
-  MessageSquare, AlertTriangle
+  MessageSquare, AlertTriangle, Share2, Check
 } from 'lucide-react';
-import api from '../../services/api';
+import api, { portalAPI } from '../../services/api';
 import ClientForm from './ClientForm';
 import SessionForm from '../Sessions/SessionForm';
 
@@ -81,6 +81,7 @@ export default function ClientDetailPage() {
   const [tab, setTab] = useState('overview');
   const [typeFilter, setTypeFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [portalCopied, setPortalCopied] = useState(false);
 
   const load = async () => {
     try {
@@ -126,6 +127,18 @@ export default function ClientDetailPage() {
       }
     } catch (err) {
       console.error('Create session error:', err);
+    }
+  };
+
+  const handleSharePortal = async () => {
+    try {
+      const res = await portalAPI.generateToken(id);
+      const portalUrl = `${window.location.origin}/portal/${res.data.portalToken}`;
+      await navigator.clipboard.writeText(portalUrl);
+      setPortalCopied(true);
+      setTimeout(() => setPortalCopied(false), 2000);
+    } catch (err) {
+      console.error('Share portal error:', err);
     }
   };
 
@@ -234,6 +247,18 @@ export default function ClientDetailPage() {
                 style={{ background: 'linear-gradient(135deg, #E8792F, #c45c1a)', color: '#fff', letterSpacing: '0.04em', boxShadow: '0 0 16px rgba(232,121,47,0.3)' }}
               >
                 <Plus size={13} />Add Session
+              </button>
+              <button
+                onClick={handleSharePortal}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-all"
+                style={{
+                  letterSpacing: '0.04em',
+                  ...(portalCopied
+                    ? { background: 'rgba(74,222,128,0.10)', border: '1px solid rgba(74,222,128,0.25)', color: '#4ade80' }
+                    : { background: 'rgba(232,121,47,0.08)', border: '1px solid rgba(232,121,47,0.25)', color: '#E8792F' })
+                }}
+              >
+                {portalCopied ? <><Check size={13} />Link Copied!</> : <><Share2 size={13} />Share Portal</>}
               </button>
               <button
                 onClick={handleDelete}

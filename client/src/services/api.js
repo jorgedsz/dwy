@@ -35,4 +35,16 @@ export const whatsappAPI = {
   linkGroup: (data) => api.post('/whatsapp/link-group', data),
 };
 
+// Portal API (public, no auth interceptor)
+const portalAxios = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+export const portalAPI = {
+  getClient: (token) => portalAxios.get(`/portal/${token}`),
+  getSession: (token, sessionId) => portalAxios.get(`/portal/${token}/sessions/${sessionId}`),
+  generateToken: (clientId) => api.post(`/portal/generate/${clientId}`),
+};
+
 export default api;
