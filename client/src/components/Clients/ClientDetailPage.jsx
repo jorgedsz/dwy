@@ -338,7 +338,7 @@ export default function ClientDetailPage() {
                     : { background: 'rgba(232,121,47,0.08)', border: '1px solid rgba(232,121,47,0.25)', color: '#E8792F' })
                 }}
               >
-                {portalCopied ? <><Check size={13} />Link Copied!</> : <><Share2 size={13} />Share Portal</>}
+                {portalCopied ? <><Check size={11} />Link Copied!</> : <><Share2 size={11} />Share Portal</>}
               </button>
               <button
                 onClick={handleDelete}
