@@ -129,8 +129,8 @@ async function getEvents(prisma, userId, { timeMin, timeMax, search }) {
         singleEvents: true,
         orderBy: 'startTime',
         maxResults: 100,
+        q: search ? `DWY ${search}` : 'DWY',
       };
-      if (search) params.q = search;
 
       const { data } = await calendar.events.list(params);
 
