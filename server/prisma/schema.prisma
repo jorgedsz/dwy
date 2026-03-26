@@ -8,14 +8,15 @@ datasource db {
 }
 
 model User {
-  id          Int                @id @default(autoincrement())
-  email       String             @unique
-  password    String
-  name        String?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  assignments ClientAssignment[]
-  waProjects  WaProject[]
+  id                    Int                    @id @default(autoincrement())
+  email                 String                 @unique
+  password              String
+  name                  String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  assignments           ClientAssignment[]
+  waProjects            WaProject[]
+  calendarIntegrations  CalendarIntegration[]
 }
 
 model Client {
@@ -128,4 +129,21 @@ model WaBotConfig {
   enabled         Boolean          @default(true)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+}
+
+model CalendarIntegration {
+  id                 Int       @id @default(autoincrement())
+  userId             Int
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider           String    @default("google")
+  accessToken        String    @db.Text
+  refreshToken       String    @db.Text
+  externalAccountId  String
+  calendarId         String    @default("primary")
+  expiresAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@unique([userId, provider, externalAccountId])
+  @@index([userId])
 }

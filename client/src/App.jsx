@@ -8,6 +8,7 @@ import ClientsListPage from './components/Clients/ClientsListPage';
 import ClientDetailPage from './components/Clients/ClientDetailPage';
 import SessionDetailPage from './components/Sessions/SessionDetailPage';
 import WhatsAppPage from './components/WhatsApp/WhatsAppPage';
+import MeetingsPage from './components/Meetings/MeetingsPage';
 import ClientPortalPage from './components/Portal/ClientPortalPage';
 import SessionPortalPage from './components/Portal/SessionPortalPage';
 
@@ -37,6 +38,7 @@ function App() {
         <Route path="clients" element={<ClientsListPage />} />
         <Route path="clients/:id" element={<ClientDetailPage />} />
         <Route path="sessions/:id" element={<SessionDetailPage />} />
+        <Route path="meetings" element={<MeetingsPage />} />
         <Route path="whatsapp" element={<WhatsAppPage />} />
       </Route>
     </Routes>

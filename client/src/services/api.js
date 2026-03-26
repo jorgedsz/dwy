@@ -47,4 +47,12 @@ export const portalAPI = {
   generateToken: (clientId) => api.post(`/portal/generate/${clientId}`),
 };
 
+// Calendar API
+export const calendarAPI = {
+  getIntegrations: () => api.get('/calendar/integrations'),
+  getAuthUrl: () => api.get('/calendar/auth/google'),
+  getEvents: (params) => api.get('/calendar/events', { params }),
+  disconnect: (id) => api.delete(`/calendar/integrations/${id}`),
+};
+
 export default api;
