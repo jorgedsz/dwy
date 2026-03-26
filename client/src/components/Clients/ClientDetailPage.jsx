@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit, Trash2, Plus, Phone, Mail, Building, User, Calendar,
   Video, FileText, Clock, Shield, Settings, Users, Sparkles, ChevronLeft, ChevronRight,
-  MessageSquare, AlertTriangle, Share2, Check, X
+  MessageSquare, AlertTriangle, Share2, Check, X, BarChart3, RefreshCw, TrendingUp,
+  GitCompare, ListChecks, DollarSign, Loader2
 } from 'lucide-react';
 import api, { portalAPI } from '../../services/api';
 import ClientForm from './ClientForm';
@@ -87,6 +88,9 @@ export default function ClientDetailPage() {
   const [contractedSessions, setContractedSessions] = useState(null);
   const [showNotes, setShowNotes] = useState(false);
   const [notesValue, setNotesValue] = useState('');
+  const [analysis, setAnalysis] = useState(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisError, setAnalysisError] = useState(null);
 
   const load = async () => {
     try {
@@ -187,6 +191,19 @@ export default function ClientDetailPage() {
     }
   };
 
+  const handleGenerateAnalysis = async () => {
+    setAnalysisLoading(true);
+    setAnalysisError(null);
+    try {
+      const res = await api.post(`/sessions/client/${id}/analysis`);
+      setAnalysis(res.data);
+    } catch (err) {
+      setAnalysisError(err.response?.data?.error || 'Failed to generate analysis');
+    } finally {
+      setAnalysisLoading(false);
+    }
+  };
+
   if (loading) return <div style={{ color: '#64748b' }}>Loading...</div>;
   if (!client) return <div style={{ color: '#64748b' }}>Client not found</div>;
 
@@ -205,6 +222,7 @@ export default function ClientDetailPage() {
     { key: 'sessions', label: 'Sessions', icon: Video },
     { key: 'team', label: 'Team', icon: Users },
     { key: 'notes', label: 'Notes', icon: FileText },
+    { key: 'analysis', label: 'Analysis', icon: BarChart3 },
   ];
 
   // Group sessions by date for timeline
@@ -797,6 +815,118 @@ export default function ClientDetailPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ===== ANALYSIS TAB ===== */}
+      {tab === 'analysis' && (
+        <div>
+          {/* Header with Regenerate */}
+          {analysis && !analysisLoading && (
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-[13px] font-bold uppercase flex items-center gap-2" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>
+                <BarChart3 size={14} style={{ color: '#E8792F' }} />
+                Client Analysis
+              </h2>
+              <button
+                onClick={handleGenerateAnalysis}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A0AEC0', letterSpacing: '0.04em' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(232,121,47,0.3)'; e.currentTarget.style.color = '#E8792F'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#A0AEC0'; }}
+              >
+                <RefreshCw size={13} />Regenerate
+              </button>
+            </div>
+          )}
+
+          {/* Loading state */}
+          {analysisLoading && (
+            <div className="glass rounded-xl p-16 text-center">
+              <Loader2 size={36} className="mx-auto mb-4 animate-spin" style={{ color: '#E8792F' }} />
+              <p className="text-sm font-semibold" style={{ color: '#A0AEC0' }}>Generating comprehensive analysis...</p>
+              <p className="text-xs mt-2" style={{ color: '#475569' }}>Analyzing all sessions with AI summaries</p>
+            </div>
+          )}
+
+          {/* Empty / CTA state */}
+          {!analysis && !analysisLoading && (
+            <div className="glass rounded-xl p-16 text-center">
+              <BarChart3 size={40} className="mx-auto mb-4 opacity-30" style={{ color: '#E8792F' }} />
+              <h3 className="text-lg font-bold text-white mb-2">Client Analysis</h3>
+              <p className="text-sm mb-6 max-w-md mx-auto" style={{ color: '#64748b' }}>
+                Generate an AI-powered holistic report across all sessions — including progress tracking, deviation analysis, and upsell opportunities.
+              </p>
+              {analysisError && (
+                <p className="text-xs mb-4" style={{ color: '#f87171' }}>{analysisError}</p>
+              )}
+              <button
+                onClick={handleGenerateAnalysis}
+                disabled={withSummary === 0}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-[12px] font-bold uppercase transition-transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                style={{ background: 'linear-gradient(135deg, #E8792F, #c45c1a)', letterSpacing: '0.05em', boxShadow: '0 0 20px rgba(232,121,47,0.35)' }}
+              >
+                <Sparkles size={15} />Generate Analysis
+              </button>
+              {withSummary === 0 && (
+                <p className="text-[11px] mt-3" style={{ color: '#475569' }}>No sessions with AI summaries yet. Analyze individual sessions first.</p>
+              )}
+            </div>
+          )}
+
+          {/* Results */}
+          {analysis && !analysisLoading && (
+            <div className="space-y-5">
+              {/* Global Summary — orange accent */}
+              <div className="glass rounded-xl p-6 relative overflow-hidden" style={{ borderLeft: '3px solid #E8792F' }}>
+                <div className="absolute top-0 right-0 w-40 h-40 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(232,121,47,0.06), transparent 70%)' }} />
+                <div className="flex items-center gap-2 mb-3">
+                  <Sparkles size={16} style={{ color: '#E8792F' }} />
+                  <h3 className="text-[12px] font-bold uppercase" style={{ color: '#E8792F', letterSpacing: '0.06em' }}>Global Summary</h3>
+                </div>
+                <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.7' }}>{analysis.globalSummary}</p>
+              </div>
+
+              {/* Progress + Deviation — side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Progress */}
+                <div className="glass rounded-xl p-6" style={{ borderLeft: '3px solid #4ade80' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp size={16} style={{ color: '#4ade80' }} />
+                    <h3 className="text-[12px] font-bold uppercase" style={{ color: '#4ade80', letterSpacing: '0.06em' }}>Progress So Far</h3>
+                  </div>
+                  <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.7' }}>{analysis.progressReport}</p>
+                </div>
+
+                {/* Deviation */}
+                <div className="glass rounded-xl p-6" style={{ borderLeft: '3px solid #fbbf24' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <GitCompare size={16} style={{ color: '#fbbf24' }} />
+                    <h3 className="text-[12px] font-bold uppercase" style={{ color: '#fbbf24', letterSpacing: '0.06em' }}>Deviation from Commercial Call</h3>
+                  </div>
+                  <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.7' }}>{analysis.deviationAnalysis}</p>
+                </div>
+              </div>
+
+              {/* All Pending Items — amber tinted */}
+              <div className="rounded-xl p-6" style={{ background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.12)', borderLeft: '3px solid #fbbf24' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <ListChecks size={16} style={{ color: '#fbbf24' }} />
+                  <h3 className="text-[12px] font-bold uppercase" style={{ color: '#fbbf24', letterSpacing: '0.06em' }}>All Pending Items</h3>
+                </div>
+                <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.7' }}>{analysis.allPendingItems}</p>
+              </div>
+
+              {/* Upsell Opportunities — purple border */}
+              <div className="glass rounded-xl p-6" style={{ borderLeft: '3px solid #a855f7' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign size={16} style={{ color: '#a855f7' }} />
+                  <h3 className="text-[12px] font-bold uppercase" style={{ color: '#a855f7', letterSpacing: '0.06em' }}>Upsell Opportunities</h3>
+                </div>
+                <p className="text-[13px] whitespace-pre-wrap" style={{ color: '#cbd5e0', lineHeight: '1.7' }}>{analysis.upsellOpportunities}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

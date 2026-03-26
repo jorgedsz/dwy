@@ -105,4 +105,66 @@ Respond in the SAME LANGUAGE as the transcription. Return JSON with:
   return { summary, pendingItems };
 }
 
-module.exports = { analyzeSession };
+async function analyzeClient(clientId) {
+  console.log(`[AI] Client Analysis: Fetching sessions for client ${clientId}...`);
+
+  const sessions = await prisma.session.findMany({
+    where: {
+      clientId: parseInt(clientId),
+      aiSummary: { not: null },
+    },
+    orderBy: { date: 'asc' },
+    select: { id: true, title: true, date: true, type: true, aiSummary: true, pendingItems: true },
+  });
+
+  if (sessions.length === 0) return null;
+
+  const commercialCalls = sessions.filter((s) => s.type === 'commercial_call');
+  const lessons = sessions.filter((s) => s.type === 'lesson');
+
+  const formatSession = (s) =>
+    `- "${s.title}" (${s.date.toISOString().split('T')[0]})\n  Summary: ${s.aiSummary}\n  Pending: ${s.pendingItems || 'None'}`;
+
+  const prompt = `You are a senior coaching/consulting analyst. Analyze ALL sessions for this client and produce a holistic report.
+
+COMMERCIAL CALLS (${commercialCalls.length}):
+${commercialCalls.length > 0 ? commercialCalls.map(formatSession).join('\n') : 'None'}
+
+LESSONS (${lessons.length}):
+${lessons.length > 0 ? lessons.map(formatSession).join('\n') : 'None'}
+
+Respond in the SAME LANGUAGE as the session summaries. Return JSON with exactly these 5 keys:
+- "globalSummary": A comprehensive overview of the client's journey, key themes, and current state.
+- "progressReport": What progress has been made across all lessons — skills developed, milestones reached, areas of growth.
+- "deviationAnalysis": Compare what was discussed/promised in commercial calls vs what has actually been covered in lessons. Note any gaps or deviations.
+- "allPendingItems": A consolidated bullet-point list of ALL unresolved action items across every session.
+- "upsellOpportunities": Based on the client's needs and progress, suggest potential upsell opportunities or additional services that could benefit them.`;
+
+  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your-openai-api-key-here') {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+
+  console.log(`[AI] Client Analysis: Sending ${sessions.length} sessions to OpenAI...`);
+
+  const openai = getClient();
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    response_format: { type: 'json_object' },
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.3,
+  });
+
+  const raw = response.choices[0].message.content;
+  let result;
+  try {
+    result = JSON.parse(raw);
+  } catch (parseErr) {
+    console.error('[AI] Client Analysis: Failed to parse response:', raw);
+    throw new Error('AI returned invalid JSON');
+  }
+
+  console.log(`[AI] Client Analysis: Done for client ${clientId}.`);
+  return result;
+}
+
+module.exports = { analyzeSession, analyzeClient };

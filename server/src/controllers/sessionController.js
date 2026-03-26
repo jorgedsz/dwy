@@ -1,5 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
-const { analyzeSession } = require('../services/aiService');
+const { analyzeSession, analyzeClient } = require('../services/aiService');
 
 const prisma = new PrismaClient();
 
@@ -162,4 +162,17 @@ async function analyzeAll(req, res) {
   }
 }
 
-module.exports = { listByClient, getById, create, update, remove, analyze, analyzeAll, testAi };
+async function clientAnalysis(req, res) {
+  try {
+    const result = await analyzeClient(req.params.clientId);
+    if (!result) {
+      return res.status(400).json({ error: 'No sessions with AI summaries available for analysis' });
+    }
+    res.json(result);
+  } catch (err) {
+    console.error('Client analysis error:', err.message || err);
+    res.status(500).json({ error: err.message || 'Client analysis failed' });
+  }
+}
+
+module.exports = { listByClient, getById, create, update, remove, analyze, analyzeAll, testAi, clientAnalysis };
