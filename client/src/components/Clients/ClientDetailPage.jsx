@@ -444,7 +444,12 @@ export default function ClientDetailPage() {
                           {wp.estado}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-[11px]" style={{ color: '#64748b' }}>
+                      {wp.ultimoMensaje && (
+                        <p className="text-[11px] mt-1.5 truncate" style={{ color: '#94a3b8', maxWidth: '100%' }}>
+                          "{wp.ultimoMensaje}"
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 text-[11px] mt-1.5" style={{ color: '#64748b' }}>
                         <span className="flex items-center gap-1">
                           <MessageSquare size={11} />
                           {wp.totalMensajes} msgs
@@ -456,8 +461,11 @@ export default function ClientDetailPage() {
                           </span>
                         )}
                         {wp.ultimaActividad && (
-                          <span>
-                            Last: {new Date(wp.ultimaActividad).toLocaleDateString()}
+                          <span className="flex items-center gap-1">
+                            <Clock size={11} />
+                            {new Date(wp.ultimaActividad).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+                            {' '}
+                            {new Date(wp.ultimaActividad).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         )}
                       </div>

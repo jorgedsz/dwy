@@ -53,6 +53,7 @@ async function getById(req, res) {
             totalMensajes: true,
             alertasCount: true,
             ultimaActividad: true,
+            ultimoMensaje: true,
           },
         },
       },
