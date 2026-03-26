@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { listByClient, getById, create, update, remove, analyze, testAi } = require('../controllers/sessionController');
+const { listByClient, getById, create, update, remove, analyze, analyzeAll, testAi } = require('../controllers/sessionController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 const router = Router();
@@ -12,6 +12,7 @@ router.get('/:id', getById);
 router.post('/', create);
 router.put('/:id', update);
 router.delete('/:id', remove);
+router.post('/analyze-all', analyzeAll);
 router.post('/:id/analyze', analyze);
 
 module.exports = router;

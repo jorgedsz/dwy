@@ -129,4 +129,37 @@ async function testAi(req, res) {
   }
 }
 
-module.exports = { listByClient, getById, create, update, remove, analyze, testAi };
+async function analyzeAll(req, res) {
+  try {
+    const sessions = await prisma.session.findMany({
+      where: {
+        transcription: { not: null },
+        aiSummary: null,
+      },
+      select: { id: true, title: true },
+    });
+
+    if (sessions.length === 0) {
+      return res.json({ message: 'No sessions need analysis', count: 0 });
+    }
+
+    res.json({ message: `Analyzing ${sessions.length} sessions in background`, count: sessions.length, sessions: sessions.map(s => s.title) });
+
+    // Run in background after responding
+    for (const session of sessions) {
+      try {
+        console.log(`[AI Batch] Analyzing session ${session.id}: ${session.title}`);
+        await analyzeSession(session.id);
+        console.log(`[AI Batch] Done: ${session.title}`);
+      } catch (err) {
+        console.error(`[AI Batch] Failed session ${session.id}:`, err.message);
+      }
+    }
+    console.log('[AI Batch] All done.');
+  } catch (err) {
+    console.error('Analyze all error:', err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { listByClient, getById, create, update, remove, analyze, analyzeAll, testAi };
