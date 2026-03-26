@@ -400,6 +400,20 @@ export default function ClientDetailPage() {
                 <Plus size={13} />Add Session
               </button>
               <button
+                onClick={() => setShowTwilioForm(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-all"
+                style={{
+                  letterSpacing: '0.04em',
+                  ...(client.hasTwilioCreds
+                    ? { background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.25)', color: '#4ade80' }
+                    : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A0AEC0' })
+                }}
+                onMouseEnter={(e) => { if (!client.hasTwilioCreds) { e.currentTarget.style.borderColor = 'rgba(232,121,47,0.3)'; e.currentTarget.style.color = '#E8792F'; } }}
+                onMouseLeave={(e) => { if (!client.hasTwilioCreds) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#A0AEC0'; } }}
+              >
+                <Phone size={13} />{client.hasTwilioCreds ? `Twilio ···${client.twilioSidLast4}` : 'Twilio'}
+              </button>
+              <button
                 onClick={handleSharePortal}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-all"
                 style={{
@@ -647,143 +661,6 @@ export default function ClientDetailPage() {
                   )}
                 </div>
               ))}
-            </div>
-
-            {/* Twilio Integration */}
-            <div className="glass rounded-xl p-5">
-              <h3 className="text-[11px] font-bold uppercase mb-3 flex items-center gap-2" style={{ color: '#A0AEC0', letterSpacing: '0.06em' }}>
-                <Phone size={13} style={{ color: '#E8792F' }} />
-                Twilio Integration
-              </h3>
-
-              {!client.hasTwilioCreds ? (
-                <>
-                  {!showTwilioForm ? (
-                    <div className="text-center py-3">
-                      <p className="text-[12px] mb-3" style={{ color: '#475569' }}>Not connected</p>
-                      <button
-                        onClick={() => setShowTwilioForm(true)}
-                        className="text-[11px] font-bold uppercase transition-colors px-4 py-2 rounded-lg"
-                        style={{ background: 'rgba(232,121,47,0.08)', border: '1px solid rgba(232,121,47,0.25)', color: '#E8792F', letterSpacing: '0.04em' }}
-                      >
-                        Connect Twilio
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2.5">
-                      <input
-                        type="text"
-                        placeholder="Account SID"
-                        value={twilioSid}
-                        onChange={(e) => setTwilioSid(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg text-xs outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                        onFocus={(e) => e.target.style.borderColor = 'rgba(232,121,47,0.5)'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
-                      />
-                      <input
-                        type="password"
-                        placeholder="Auth Token"
-                        value={twilioToken}
-                        onChange={(e) => setTwilioToken(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg text-xs outline-none"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                        onFocus={(e) => e.target.style.borderColor = 'rgba(232,121,47,0.5)'}
-                        onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleTwilioSave}
-                          disabled={twilioSaving || !twilioSid || !twilioToken}
-                          className="flex-1 px-3 py-2 rounded-lg text-[11px] font-bold uppercase text-white disabled:opacity-40"
-                          style={{ background: 'linear-gradient(135deg, #E8792F, #c45c1a)', letterSpacing: '0.04em' }}
-                        >
-                          {twilioSaving ? 'Saving...' : 'Save'}
-                        </button>
-                        <button
-                          onClick={() => { setShowTwilioForm(false); setTwilioSid(''); setTwilioToken(''); }}
-                          className="px-3 py-2 rounded-lg text-[11px] font-medium"
-                          style={{ color: '#64748b' }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* Connected state */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)', letterSpacing: '0.04em' }}>
-                      Connected
-                    </span>
-                    <span className="text-[11px]" style={{ color: '#64748b' }}>
-                      ···{client.twilioSidLast4}
-                    </span>
-                  </div>
-
-                  {/* Last call info */}
-                  {lastCallLoading ? (
-                    <div className="flex items-center gap-2 py-2">
-                      <Loader2 size={14} className="animate-spin" style={{ color: '#E8792F' }} />
-                      <span className="text-[11px]" style={{ color: '#64748b' }}>Fetching last call...</span>
-                    </div>
-                  ) : lastCallError ? (
-                    <p className="text-[11px] py-1" style={{ color: '#f87171' }}>{lastCallError}</p>
-                  ) : lastCall ? (
-                    <div className="space-y-1.5 mb-3 p-2.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] uppercase font-semibold" style={{ color: '#475569' }}>Last Call</span>
-                        <span className="text-[11px] font-medium" style={{ color: '#A0AEC0' }}>
-                          {new Date(lastCall.lastCallDate).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] uppercase font-semibold" style={{ color: '#475569' }}>To</span>
-                        <span className="text-[11px]" style={{ color: '#94a3b8' }}>{lastCall.lastCallTo}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] uppercase font-semibold" style={{ color: '#475569' }}>Duration</span>
-                        <span className="text-[11px]" style={{ color: '#94a3b8' }}>{lastCall.lastCallDuration}s</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] uppercase font-semibold" style={{ color: '#475569' }}>Status</span>
-                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{
-                          letterSpacing: '0.04em',
-                          ...(lastCall.lastCallStatus === 'completed'
-                            ? { background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)' }
-                            : { background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' })
-                        }}>{lastCall.lastCallStatus}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-[11px] py-1 mb-3" style={{ color: '#475569' }}>No calls found</p>
-                  )}
-
-                  {/* Action buttons */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={fetchLastCall}
-                      className="flex items-center gap-1.5 text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#64748b', letterSpacing: '0.04em' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(232,121,47,0.3)'; e.currentTarget.style.color = '#E8792F'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#64748b'; }}
-                    >
-                      <RefreshCw size={10} />Refresh
-                    </button>
-                    <button
-                      onClick={handleTwilioDisconnect}
-                      className="flex items-center gap-1.5 text-[10px] font-bold uppercase px-3 py-1.5 rounded-lg transition-colors"
-                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#64748b', letterSpacing: '0.04em' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; e.currentTarget.style.color = '#f87171'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#64748b'; }}
-                    >
-                      <X size={10} />Disconnect
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
 
             {/* WhatsApp Groups */}
@@ -1122,6 +999,143 @@ export default function ClientDetailPage() {
 
       {editing && <ClientForm client={client} onSave={handleUpdate} onCancel={() => setEditing(false)} />}
       {showSessionForm && <SessionForm clientId={id} onSave={handleCreateSession} onCancel={() => setShowSessionForm(false)} />}
+
+      {/* Twilio Modal */}
+      {showTwilioForm && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)' }}>
+          <div className="glass w-full max-w-md rounded-2xl p-5" style={{ boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[13px] font-bold uppercase text-white flex items-center gap-2" style={{ letterSpacing: '0.06em' }}>
+                <Phone size={14} style={{ color: '#E8792F' }} />
+                Twilio Integration
+              </h2>
+              <button onClick={() => { setShowTwilioForm(false); setTwilioSid(''); setTwilioToken(''); }} style={{ color: '#475569' }} className="transition-colors"
+                onMouseEnter={(e) => e.currentTarget.style.color = '#A0AEC0'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#475569'}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {!client.hasTwilioCreds ? (
+              <div className="space-y-3">
+                <p className="text-[12px]" style={{ color: '#64748b' }}>Connect this client's Twilio account to see their last call info.</p>
+                <input
+                  type="text"
+                  placeholder="Account SID"
+                  value={twilioSid}
+                  onChange={(e) => setTwilioSid(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(232,121,47,0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  placeholder="Auth Token"
+                  value={twilioToken}
+                  onChange={(e) => setTwilioToken(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(232,121,47,0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                />
+                <div className="flex justify-end gap-3 mt-4">
+                  <button onClick={() => { setShowTwilioForm(false); setTwilioSid(''); setTwilioToken(''); }} className="px-4 py-2 text-xs font-medium" style={{ color: '#64748b' }}>
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleTwilioSave}
+                    disabled={twilioSaving || !twilioSid || !twilioToken}
+                    className="px-5 py-2 rounded-lg text-white text-[11px] font-bold uppercase transition-transform hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
+                    style={{ background: 'linear-gradient(135deg, #E8792F, #c45c1a)', letterSpacing: '0.05em', boxShadow: '0 0 20px rgba(232,121,47,0.35)' }}
+                  >
+                    {twilioSaving ? 'Saving...' : 'Connect'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                {/* Connected badge */}
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)', letterSpacing: '0.04em' }}>
+                    Connected
+                  </span>
+                  <span className="text-[12px]" style={{ color: '#64748b' }}>
+                    Account ···{client.twilioSidLast4}
+                  </span>
+                </div>
+
+                {/* Last call info */}
+                {lastCallLoading ? (
+                  <div className="flex items-center gap-2 py-4 justify-center">
+                    <Loader2 size={16} className="animate-spin" style={{ color: '#E8792F' }} />
+                    <span className="text-[12px]" style={{ color: '#64748b' }}>Fetching last call...</span>
+                  </div>
+                ) : lastCallError ? (
+                  <p className="text-[12px] py-2" style={{ color: '#f87171' }}>{lastCallError}</p>
+                ) : lastCall ? (
+                  <div className="space-y-2 p-3 rounded-lg mb-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="text-[10px] font-bold uppercase mb-2" style={{ color: '#475569', letterSpacing: '0.06em' }}>Last Call</div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px]" style={{ color: '#475569' }}>Date</span>
+                      <span className="text-[12px] font-medium" style={{ color: '#A0AEC0' }}>
+                        {new Date(lastCall.lastCallDate).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px]" style={{ color: '#475569' }}>To</span>
+                      <span className="text-[12px]" style={{ color: '#94a3b8' }}>{lastCall.lastCallTo}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px]" style={{ color: '#475569' }}>From</span>
+                      <span className="text-[12px]" style={{ color: '#94a3b8' }}>{lastCall.lastCallFrom}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px]" style={{ color: '#475569' }}>Duration</span>
+                      <span className="text-[12px]" style={{ color: '#94a3b8' }}>{lastCall.lastCallDuration}s</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px]" style={{ color: '#475569' }}>Status</span>
+                      <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{
+                        letterSpacing: '0.04em',
+                        ...(lastCall.lastCallStatus === 'completed'
+                          ? { background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)' }
+                          : { background: 'rgba(248,113,113,0.12)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' })
+                      }}>{lastCall.lastCallStatus}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[12px] py-2 mb-4" style={{ color: '#475569' }}>No calls found</p>
+                )}
+
+                {/* Actions */}
+                <div className="flex justify-between">
+                  <button
+                    onClick={fetchLastCall}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-all"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A0AEC0', letterSpacing: '0.04em' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(232,121,47,0.3)'; e.currentTarget.style.color = '#E8792F'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#A0AEC0'; }}
+                  >
+                    <RefreshCw size={12} />Refresh
+                  </button>
+                  <button
+                    onClick={() => { handleTwilioDisconnect(); setShowTwilioForm(false); }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-all"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#64748b', letterSpacing: '0.04em' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; e.currentTarget.style.color = '#f87171'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#64748b'; }}
+                  >
+                    <Trash2 size={12} />Disconnect
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Notes Modal */}
       {showNotes && (
