@@ -85,6 +85,8 @@ export default function ClientDetailPage() {
   const [editingSince, setEditingSince] = useState(false);
   const [sinceValue, setSinceValue] = useState('');
   const [contractedSessions, setContractedSessions] = useState(null);
+  const [showNotes, setShowNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState('');
 
   const load = async () => {
     try {
@@ -104,6 +106,7 @@ export default function ClientDetailPage() {
       const d = client.startDate || client.createdAt;
       setSinceValue(d ? new Date(d).toISOString().split('T')[0] : '');
       setContractedSessions(client.contractedSessions);
+      setNotesValue(client.notes || '');
     }
   }, [client]);
 
@@ -159,6 +162,16 @@ export default function ClientDetailPage() {
       load();
     } catch (err) {
       console.error('Save contracted sessions error:', err);
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    try {
+      await api.put(`/clients/${id}`, { notes: notesValue });
+      setShowNotes(false);
+      load();
+    } catch (err) {
+      console.error('Save notes error:', err);
     }
   };
 
@@ -378,7 +391,7 @@ export default function ClientDetailPage() {
                 )}
               </div>
 
-              {/* Quick Stats */}
+              {/* Quick Stats + Notes */}
               <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div className="text-[10px] font-bold uppercase mb-2" style={{ color: '#475569', letterSpacing: '0.06em' }}>Summary</div>
                 <div className="space-y-1.5">
@@ -392,6 +405,16 @@ export default function ClientDetailPage() {
                     </div>
                   ))}
                 </div>
+                <button
+                  onClick={() => setShowNotes(true)}
+                  className="w-full mt-2.5 pt-2 flex items-center gap-1.5 text-[10px] font-semibold transition-colors"
+                  style={{ borderTop: '1px solid rgba(255,255,255,0.06)', color: '#64748b' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#E8792F'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#64748b'}
+                >
+                  <FileText size={10} />
+                  {client.notes ? 'View Notes' : 'Add Notes'}
+                </button>
               </div>
             </div>
 
@@ -779,6 +802,49 @@ export default function ClientDetailPage() {
 
       {editing && <ClientForm client={client} onSave={handleUpdate} onCancel={() => setEditing(false)} />}
       {showSessionForm && <SessionForm clientId={id} onSave={handleCreateSession} onCancel={() => setShowSessionForm(false)} />}
+
+      {/* Notes Modal */}
+      {showNotes && (
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(2px)' }}>
+          <div className="glass w-full max-w-md rounded-2xl p-5" style={{ boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[13px] font-bold uppercase text-white flex items-center gap-2" style={{ letterSpacing: '0.06em' }}>
+                <FileText size={14} style={{ color: '#E8792F' }} />
+                Notes
+              </h2>
+              <button onClick={() => setShowNotes(false)} style={{ color: '#475569' }} className="transition-colors"
+                onMouseEnter={(e) => e.currentTarget.style.color = '#A0AEC0'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#475569'}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <textarea
+              value={notesValue}
+              onChange={(e) => setNotesValue(e.target.value)}
+              rows={6}
+              placeholder="Add notes about this client..."
+              className="w-full px-3 py-2.5 rounded-lg text-sm outline-none resize-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', lineHeight: '1.6' }}
+              onFocus={(e) => e.target.style.borderColor = 'rgba(232,121,47,0.5)'}
+              onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+              autoFocus
+            />
+            <div className="flex justify-end gap-3 mt-4">
+              <button onClick={() => setShowNotes(false)} className="px-4 py-2 text-xs font-medium" style={{ color: '#64748b' }}>
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveNotes}
+                className="px-5 py-2 rounded-lg text-white text-[11px] font-bold uppercase transition-transform hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg, #E8792F, #c45c1a)', letterSpacing: '0.05em', boxShadow: '0 0 20px rgba(232,121,47,0.35)' }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
