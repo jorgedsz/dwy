@@ -400,20 +400,6 @@ export default function ClientDetailPage() {
                 <Plus size={13} />Add Session
               </button>
               <button
-                onClick={() => setShowTwilioForm(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-all"
-                style={{
-                  letterSpacing: '0.04em',
-                  ...(client.hasTwilioCreds
-                    ? { background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.25)', color: '#4ade80' }
-                    : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#A0AEC0' })
-                }}
-                onMouseEnter={(e) => { if (!client.hasTwilioCreds) { e.currentTarget.style.borderColor = 'rgba(232,121,47,0.3)'; e.currentTarget.style.color = '#E8792F'; } }}
-                onMouseLeave={(e) => { if (!client.hasTwilioCreds) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#A0AEC0'; } }}
-              >
-                <Phone size={13} />{client.hasTwilioCreds ? `Twilio ···${client.twilioSidLast4}` : 'Twilio'}
-              </button>
-              <button
                 onClick={handleSharePortal}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold uppercase transition-all"
                 style={{
@@ -501,6 +487,44 @@ export default function ClientDetailPage() {
                   {client.notes ? 'View Notes' : 'Add Notes'}
                 </button>
               </div>
+            </div>
+
+            {/* Twilio */}
+            <div
+              className="rounded-xl p-3 cursor-pointer transition-all"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+              onClick={() => setShowTwilioForm(true)}
+              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(232,121,47,0.25)'}
+              onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-[10px] font-bold uppercase flex items-center gap-1.5" style={{ color: '#475569', letterSpacing: '0.06em' }}>
+                  <Phone size={10} style={{ color: '#E8792F' }} />
+                  Twilio
+                </div>
+                {client.hasTwilioCreds ? (
+                  <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(74,222,128,0.12)', color: '#4ade80', border: '1px solid rgba(74,222,128,0.2)', letterSpacing: '0.04em' }}>
+                    Connected
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,255,255,0.04)', color: '#475569', letterSpacing: '0.04em' }}>
+                    Not set
+                  </span>
+                )}
+              </div>
+              {client.hasTwilioCreds ? (
+                <div className="text-[11px]" style={{ color: '#94a3b8' }}>
+                  {lastCallLoading ? (
+                    <span className="flex items-center gap-1.5"><Loader2 size={10} className="animate-spin" style={{ color: '#E8792F' }} />Loading...</span>
+                  ) : lastCall ? (
+                    <span>Last call {new Date(lastCall.lastCallDate).toLocaleDateString('en', { month: 'short', day: 'numeric' })}</span>
+                  ) : (
+                    <span style={{ color: '#475569' }}>No calls found</span>
+                  )}
+                </div>
+              ) : (
+                <div className="text-[11px]" style={{ color: '#475569' }}>Click to connect</div>
+              )}
             </div>
 
             {/* Team */}
