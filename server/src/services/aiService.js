@@ -4,7 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 function getClient() {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 60000 });
 }
 
 // Truncate transcription to ~12000 chars (~3000 tokens) to avoid timeouts
@@ -73,25 +73,36 @@ Respond in the SAME LANGUAGE as the transcription. Return JSON with:
     response_format: { type: 'json_object' },
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.3,
-    timeout: 30000,
   });
 
   console.log(`[AI] Step 4: OpenAI responded. Parsing...`);
 
-  const result = JSON.parse(response.choices[0].message.content);
+  const raw = response.choices[0].message.content;
+  let result;
+  try {
+    result = JSON.parse(raw);
+  } catch (parseErr) {
+    console.error('[AI] Failed to parse OpenAI response:', raw);
+    throw new Error('AI returned invalid JSON');
+  }
+
+  const summary = result.summary || '';
+  const pendingItems = Array.isArray(result.pendingItems)
+    ? result.pendingItems.join('\n')
+    : result.pendingItems || '';
 
   console.log(`[AI] Step 5: Saving to DB...`);
 
   await prisma.session.update({
     where: { id: sessionId },
     data: {
-      aiSummary: result.summary,
-      pendingItems: result.pendingItems,
+      aiSummary: summary,
+      pendingItems: pendingItems,
     },
   });
 
   console.log(`[AI] Done! Session ${sessionId} analysis complete.`);
-  return result;
+  return { summary, pendingItems };
 }
 
 module.exports = { analyzeSession };
