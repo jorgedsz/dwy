@@ -9,6 +9,8 @@ import ClientDetailPage from './components/Clients/ClientDetailPage';
 import SessionDetailPage from './components/Sessions/SessionDetailPage';
 import WhatsAppPage from './components/WhatsApp/WhatsAppPage';
 import MeetingsPage from './components/Meetings/MeetingsPage';
+import ChatbotsPage from './components/Dashboard/ChatbotsPage';
+import ChatbotEdit from './components/Dashboard/ChatbotEdit';
 import ClientPortalPage from './components/Portal/ClientPortalPage';
 import SessionPortalPage from './components/Portal/SessionPortalPage';
 
@@ -40,6 +42,9 @@ function App() {
         <Route path="sessions/:id" element={<SessionDetailPage />} />
         <Route path="meetings" element={<MeetingsPage />} />
         <Route path="whatsapp" element={<WhatsAppPage />} />
+        <Route path="chatbots" element={<ChatbotsPage />} />
+        <Route path="chatbots/new" element={<ChatbotEdit />} />
+        <Route path="chatbots/:id" element={<ChatbotEdit />} />
       </Route>
     </Routes>
   );

@@ -7,6 +7,7 @@ async function getIntegrations(req, res) {
       where: { userId: req.user.id },
       select: {
         id: true,
+        userId: true,
         provider: true,
         externalAccountId: true,
         calendarId: true,
