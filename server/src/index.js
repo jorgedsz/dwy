@@ -13,8 +13,6 @@ const sessionRoutes = require('./routes/sessions');
 const portalRoutes = require('./routes/portal');
 const calendarRoutes = require('./routes/calendar');
 const dashboardRoutes = require('./routes/dashboard');
-const googleWorkspaceRoutes = require('./routes/googleWorkspace');
-const chatbotRoutes = require('./routes/chatbots');
 const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
@@ -211,8 +209,6 @@ app.use('/api/sessions', sessionRoutes);
 app.use('/api/portal', portalRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/google-workspace', googleWorkspaceRoutes);
-app.use('/api/chatbots', chatbotRoutes);
 
 // ── WhatsApp API endpoints ─────────────────────────────────
 app.post('/api/whatsapp/sessions', authMiddleware, (req, res) => {

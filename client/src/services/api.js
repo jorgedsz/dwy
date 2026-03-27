@@ -65,14 +65,6 @@ export const taskAPI = {
   toggle: (taskId) => api.patch(`/sessions/tasks/${taskId}/toggle`),
 };
 
-// Google Workspace API (for file pickers in ChatbotEdit)
-export const googleWorkspaceAPI = {
-  listSpreadsheets: (integrationId, query) =>
-    api.get(`/google-workspace/integrations/${integrationId}/spreadsheets`, { params: { q: query } }),
-  listDocuments: (integrationId, query) =>
-    api.get(`/google-workspace/integrations/${integrationId}/documents`, { params: { q: query } }),
-};
-
 // Dashboard API
 export const dashboardAPI = {
   getPendingTasks: () => api.get('/dashboard/pending-tasks'),
