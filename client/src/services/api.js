@@ -68,6 +68,7 @@ export const taskAPI = {
 // Dashboard API
 export const dashboardAPI = {
   getPendingTasks: () => api.get('/dashboard/pending-tasks'),
+  getStats: () => api.get('/dashboard/stats'),
 };
 
 export default api;
