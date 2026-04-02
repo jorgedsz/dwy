@@ -43,39 +43,4 @@ async function getPendingTasks(req, res) {
   }
 }
 
-async function getStats(req, res) {
-  try {
-    const [clientCount, sessionCount, recentSessions] = await Promise.all([
-      prisma.client.count(),
-      prisma.session.count(),
-      prisma.session.findMany({
-        take: 5,
-        orderBy: { date: 'desc' },
-        select: {
-          id: true,
-          title: true,
-          type: true,
-          date: true,
-          client: { select: { name: true } },
-        },
-      }),
-    ]);
-
-    res.json({
-      clients: clientCount,
-      sessions: sessionCount,
-      recent: recentSessions.map((s) => ({
-        id: s.id,
-        title: s.title,
-        type: s.type,
-        date: s.date,
-        clientName: s.client.name,
-      })),
-    });
-  } catch (err) {
-    console.error('Dashboard stats error:', err);
-    res.status(500).json({ error: 'Failed to fetch stats' });
-  }
-}
-
-module.exports = { getPendingTasks, getStats };
+module.exports = { getPendingTasks };

@@ -1,26 +1,35 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Video, Clock, ListChecks, Square, CheckSquare } from 'lucide-react';
-import { dashboardAPI, taskAPI } from '../../services/api';
-
-// Module-level cache so data survives unmount/remount during navigation
-let _cache = null;
+import api, { dashboardAPI, taskAPI } from '../../services/api';
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState(_cache?.stats ?? { clients: 0, sessions: 0, recent: [] });
-  const [pendingGroups, setPendingGroups] = useState(_cache?.pendingGroups ?? []);
-  const [loading, setLoading] = useState(!_cache);
+  const [stats, setStats] = useState({ clients: 0, sessions: 0, recent: [] });
+  const [pendingGroups, setPendingGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [statsRes, pendingRes] = await Promise.all([
-          dashboardAPI.getStats(),
+        const [clientsRes, pendingRes] = await Promise.all([
+          api.get('/clients'),
           dashboardAPI.getPendingTasks(),
         ]);
-        setStats(statsRes.data);
+        const clients = clientsRes.data;
+        let allSessions = [];
+        for (const c of clients) {
+          if (c._count?.sessions > 0) {
+            const sessRes = await api.get(`/sessions/client/${c.id}`);
+            allSessions.push(...sessRes.data.map((s) => ({ ...s, clientName: c.name })));
+          }
+        }
+        allSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setStats({
+          clients: clients.length,
+          sessions: allSessions.length,
+          recent: allSessions.slice(0, 5),
+        });
         setPendingGroups(pendingRes.data);
-        _cache = { stats: statsRes.data, pendingGroups: pendingRes.data };
       } catch (err) {
         console.error('Dashboard load error:', err);
       } finally {
@@ -32,19 +41,14 @@ export default function DashboardPage() {
 
   const handleToggleTask = async (taskId) => {
     // Optimistically remove from list
-    const updater = prev =>
+    setPendingGroups(prev =>
       prev
         .map(group => ({
           ...group,
           tasks: group.tasks.filter(t => t.id !== taskId),
         }))
-        .filter(group => group.tasks.length > 0);
-
-    setPendingGroups(prev => {
-      const next = updater(prev);
-      if (_cache) _cache.pendingGroups = next;
-      return next;
-    });
+        .filter(group => group.tasks.length > 0)
+    );
 
     try {
       await taskAPI.toggle(taskId);
@@ -53,7 +57,6 @@ export default function DashboardPage() {
       // Refetch on error
       const res = await dashboardAPI.getPendingTasks();
       setPendingGroups(res.data);
-      if (_cache) _cache.pendingGroups = res.data;
     }
   };
 
