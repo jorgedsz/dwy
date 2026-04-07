@@ -70,4 +70,24 @@ export const dashboardAPI = {
   getPendingTasks: () => api.get('/dashboard/pending-tasks'),
 };
 
+// Agent API
+export const agentAPI = {
+  list: () => api.get('/agents'),
+  get: (id) => api.get(`/agents/${id}`),
+  create: (data) => api.post('/agents', data),
+  update: (id, data) => api.put(`/agents/${id}`, data),
+  duplicate: (id) => api.post(`/agents/${id}/duplicate`),
+  delete: (id) => api.delete(`/agents/${id}`),
+};
+
+// Training API
+export const trainingAPI = {
+  createSession: (agentId) => api.post('/training/sessions', { agentId }),
+  listSessions: (agentId) => api.get('/training/sessions', { params: { agentId } }),
+  getSession: (id) => api.get(`/training/sessions/${id}`),
+  completeSession: (id, transcript) => api.post(`/training/sessions/${id}/complete`, { transcript }),
+  acceptSession: (id) => api.post(`/training/sessions/${id}/accept`),
+  rejectSession: (id) => api.post(`/training/sessions/${id}/reject`),
+};
+
 export default api;

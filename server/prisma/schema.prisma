@@ -17,6 +17,7 @@ model User {
   assignments           ClientAssignment[]
   waProjects            WaProject[]
   calendarIntegrations  CalendarIntegration[]
+  agents                Agent[]
 }
 
 model Client {
@@ -163,4 +164,37 @@ model CalendarIntegration {
 
   @@unique([userId, provider, externalAccountId])
   @@index([userId])
+}
+
+model Agent {
+  id                String             @id @default(cuid())
+  userId            Int
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  firstMessage      String?            @db.Text
+  systemPromptBase  String?            @db.Text
+  language          String             @default("en")
+  voice             String?
+  vapiId            String?
+  vapiPublicKey     String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  trainingSessions  TrainingSession[]
+
+  @@index([userId])
+}
+
+model TrainingSession {
+  id              Int       @id @default(autoincrement())
+  agentId         String
+  agent           Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  userId          Int
+  sessionToken    String    @unique @default(cuid())
+  status          String    @default("in_progress")
+  proposedChanges String?   @db.Text
+  transcript      String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([agentId, createdAt])
 }

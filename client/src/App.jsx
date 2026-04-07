@@ -9,6 +9,8 @@ import ClientDetailPage from './components/Clients/ClientDetailPage';
 import SessionDetailPage from './components/Sessions/SessionDetailPage';
 import WhatsAppPage from './components/WhatsApp/WhatsAppPage';
 import MeetingsPage from './components/Meetings/MeetingsPage';
+import AgentsPage from './components/Dashboard/AgentsPage';
+import AgentEdit from './components/Dashboard/AgentEdit';
 import ClientPortalPage from './components/Portal/ClientPortalPage';
 import SessionPortalPage from './components/Portal/SessionPortalPage';
 
@@ -39,6 +41,8 @@ function App() {
         <Route path="clients/:id" element={<ClientDetailPage />} />
         <Route path="sessions/:id" element={<SessionDetailPage />} />
         <Route path="meetings" element={<MeetingsPage />} />
+        <Route path="agents" element={<AgentsPage />} />
+        <Route path="agents/:id" element={<AgentEdit />} />
         <Route path="whatsapp" element={<WhatsAppPage />} />
       </Route>
     </Routes>
