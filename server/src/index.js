@@ -15,9 +15,6 @@ const calendarRoutes = require('./routes/calendar');
 const dashboardRoutes = require('./routes/dashboard');
 const agentRoutes = require('./routes/agents');
 const trainingRoutes = require('./routes/training');
-const chatbotRoutes = require('./routes/chatbots');
-const chatbotFollowUpRoutes = require('./routes/chatbotFollowUps');
-const chatbotFollowUpController = require('./controllers/chatbotFollowUpController');
 const authMiddleware = require('./middleware/authMiddleware');
 
 const app = express();
@@ -216,8 +213,6 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/training', trainingRoutes);
-app.use('/api/chatbots', chatbotRoutes);
-app.use('/api/chatbot-follow-ups', chatbotFollowUpRoutes);
 
 // ── WhatsApp API endpoints ─────────────────────────────────
 app.post('/api/whatsapp/sessions', authMiddleware, (req, res) => {
@@ -380,7 +375,4 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  chatbotFollowUpController.startScheduler(prisma);
-});
+server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));

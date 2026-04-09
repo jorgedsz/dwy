@@ -80,16 +80,6 @@ export const agentAPI = {
   delete: (id) => api.delete(`/agents/${id}`),
 };
 
-// Chatbot API
-export const chatbotAPI = {
-  list: () => api.get('/chatbots'),
-  get: (id) => api.get(`/chatbots/${id}`),
-  create: (data) => api.post('/chatbots', data),
-  update: (id, data) => api.put(`/chatbots/${id}`, data),
-  delete: (id) => api.delete(`/chatbots/${id}`),
-  getFollowUpLogs: (chatbotId) => api.get('/chatbot-follow-ups/logs', { params: { chatbotId } }),
-};
-
 // Training API
 export const trainingAPI = {
   createSession: (agentId) => api.post('/training/sessions', { agentId }),
