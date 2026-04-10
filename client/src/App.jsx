@@ -11,6 +11,8 @@ import WhatsAppPage from './components/WhatsApp/WhatsAppPage';
 import MeetingsPage from './components/Meetings/MeetingsPage';
 import AgentsPage from './components/Dashboard/AgentsPage';
 import AgentEdit from './components/Dashboard/AgentEdit';
+import TelephonySetup from './components/Dashboard/TelephonySetup';
+import PhoneNumbers from './components/Dashboard/PhoneNumbers';
 import ClientPortalPage from './components/Portal/ClientPortalPage';
 import SessionPortalPage from './components/Portal/SessionPortalPage';
 
@@ -43,6 +45,8 @@ function App() {
         <Route path="meetings" element={<MeetingsPage />} />
         <Route path="agents" element={<AgentsPage />} />
         <Route path="agents/:id" element={<AgentEdit />} />
+        <Route path="phone-setup" element={<TelephonySetup />} />
+        <Route path="phone-numbers" element={<PhoneNumbers />} />
         <Route path="whatsapp" element={<WhatsAppPage />} />
       </Route>
     </Routes>

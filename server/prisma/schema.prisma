@@ -18,6 +18,7 @@ model User {
   waProjects            WaProject[]
   calendarIntegrations  CalendarIntegration[]
   agents                Agent[]
+  telephonyCredentials  TelephonyCredential[]
 }
 
 model Client {
@@ -180,8 +181,55 @@ model Agent {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   trainingSessions  TrainingSession[]
+  phoneNumbers      PhoneNumber[]
 
   @@index([userId])
+}
+
+model TelephonyCredential {
+  id                Int           @id @default(autoincrement())
+  provider          String        // "twilio" | "vonage" | "telnyx"
+
+  // Twilio fields (encrypted)
+  accountSid        String?       @db.Text
+  authToken         String?       @db.Text
+
+  // Vonage fields (encrypted)
+  apiKey            String?       @db.Text
+  apiSecret         String?       @db.Text
+
+  // Telnyx fields (encrypted)
+  telnyxApiKey      String?       @db.Text
+
+  // VAPI credential ID (returned by VAPI for Vonage/Telnyx)
+  vapiCredentialId  String?
+
+  isVerified        Boolean       @default(false)
+  userId            Int
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumbers      PhoneNumber[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([userId, provider])
+}
+
+model PhoneNumber {
+  id                      Int                  @id @default(autoincrement())
+  phoneNumber             String
+  friendlyName            String?
+  provider                String               // "twilio" | "vonage" | "telnyx"
+  providerPhoneId         String?
+  vapiPhoneNumberId       String?
+  status                  String               @default("pending")
+  telephonyCredentialId   Int
+  telephonyCredential     TelephonyCredential  @relation(fields: [telephonyCredentialId], references: [id], onDelete: Cascade)
+  agentId                 String?
+  agent                   Agent?               @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+
+  @@unique([providerPhoneId, telephonyCredentialId])
 }
 
 model TrainingSession {

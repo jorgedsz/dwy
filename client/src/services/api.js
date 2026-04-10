@@ -55,9 +55,28 @@ export const calendarAPI = {
   disconnect: (id) => api.delete(`/calendar/integrations/${id}`),
 };
 
-// Twilio API
+// Twilio API (legacy, per-client)
 export const twilioAPI = {
   getLastCall: (clientId) => api.get(`/clients/${clientId}/twilio/last-call`),
+};
+
+// Telephony API (multi-provider)
+export const telephonyAPI = {
+  saveCredentials: (data) => api.post('/telephony/credentials', data),
+  getCredentials: () => api.get('/telephony/credentials'),
+  updateCredentials: (id, data) => api.put(`/telephony/credentials/${id}`, data),
+  deleteCredentials: (id) => api.delete(`/telephony/credentials/${id}`),
+  verifyCredentials: (id) => api.post(`/telephony/credentials/${id}/verify`),
+};
+
+// Phone Numbers API
+export const phoneNumbersAPI = {
+  list: () => api.get('/phone-numbers'),
+  listAvailable: (credentialId) => api.get(`/phone-numbers/available/${credentialId}`),
+  import: (data) => api.post('/phone-numbers/import', data),
+  assign: (id, agentId) => api.put(`/phone-numbers/${id}/assign`, { agentId }),
+  remove: (id) => api.delete(`/phone-numbers/${id}`),
+  retryVapi: (id) => api.post(`/phone-numbers/${id}/retry-vapi`),
 };
 
 // Task API
