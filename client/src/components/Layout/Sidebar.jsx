@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, Smartphone, Bot, LogOut, Phone } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Smartphone, Bot, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar() {
@@ -50,19 +50,6 @@ export default function Sidebar() {
         <NavLink to="/agents" className={linkClass} style={({ isActive }) => linkStyle(isActive)}>
           <Bot size={15} />
           Agents
-        </NavLink>
-
-        {/* Section divider */}
-        <div className="pt-4 pb-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wider px-3" style={{ color: '#475569' }}>Telephony</p>
-        </div>
-        <NavLink to="/phone-setup" className={linkClass} style={({ isActive }) => linkStyle(isActive)}>
-          <Phone size={15} />
-          Phone Setup
-        </NavLink>
-        <NavLink to="/phone-numbers" className={linkClass} style={({ isActive }) => linkStyle(isActive)}>
-          <Phone size={15} />
-          Phone Numbers
         </NavLink>
 
         {/* Section divider */}
