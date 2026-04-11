@@ -18,6 +18,7 @@ model User {
   waProjects            WaProject[]
   calendarIntegrations  CalendarIntegration[]
   agents                Agent[]
+  chatbots              Chatbot[]
 }
 
 model Client {
@@ -197,4 +198,18 @@ model TrainingSession {
   updatedAt       DateTime  @updatedAt
 
   @@index([agentId, createdAt])
+}
+
+model Chatbot {
+  id              String   @id @default(cuid())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  config          String?  @db.Text
+  n8nWebhookUrl   String?
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
 }
