@@ -70,15 +70,6 @@ export const dashboardAPI = {
   getPendingTasks: () => api.get('/dashboard/pending-tasks'),
 };
 
-// Chatbot API
-export const chatbotAPI = {
-  list: () => api.get('/chatbots'),
-  get: (id) => api.get(`/chatbots/${id}`),
-  create: (data) => api.post('/chatbots', data),
-  update: (id, data) => api.put(`/chatbots/${id}`, data),
-  delete: (id) => api.delete(`/chatbots/${id}`),
-};
-
 // Agent API
 export const agentAPI = {
   list: () => api.get('/agents'),

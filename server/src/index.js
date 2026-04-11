@@ -15,10 +15,7 @@ const calendarRoutes = require('./routes/calendar');
 const dashboardRoutes = require('./routes/dashboard');
 const agentRoutes = require('./routes/agents');
 const trainingRoutes = require('./routes/training');
-const chatbotRoutes = require('./routes/chatbots');
 const authMiddleware = require('./middleware/authMiddleware');
-const messageBuffer = require('./services/messageBuffer');
-const { handleBufferFlush } = require('./controllers/chatbotController');
 
 const app = express();
 const server = http.createServer(app);
@@ -216,7 +213,6 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/training', trainingRoutes);
-app.use('/api/chatbots', chatbotRoutes);
 
 // ── WhatsApp API endpoints ─────────────────────────────────
 app.post('/api/whatsapp/sessions', authMiddleware, (req, res) => {
@@ -380,12 +376,3 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
-
-// Graceful shutdown: flush pending message buffers
-function gracefulShutdown(signal) {
-  console.log(`[Server] ${signal} received, flushing message buffers...`);
-  messageBuffer.clearAll(handleBufferFlush);
-  process.exit(0);
-}
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));

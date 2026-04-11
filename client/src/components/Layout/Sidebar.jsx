@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, Smartphone, Bot, MessageSquare, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Smartphone, Bot, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar() {
@@ -50,10 +50,6 @@ export default function Sidebar() {
         <NavLink to="/agents" className={linkClass} style={({ isActive }) => linkStyle(isActive)}>
           <Bot size={15} />
           Agents
-        </NavLink>
-        <NavLink to="/chatbots" className={linkClass} style={({ isActive }) => linkStyle(isActive)}>
-          <MessageSquare size={15} />
-          Chatbots
         </NavLink>
 
         {/* Section divider */}
